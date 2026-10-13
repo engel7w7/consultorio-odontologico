@@ -7,4 +7,4 @@ export const createPatientSchema = z.object({
   examenes_sangre_validados: z.boolean().optional().default(false),
 });
 
-export type CreatePatientInput = z.infer<typeof createPatientSchema>;
+export type CreatePatientInput = z.input<typeof createPatientSchema>;
