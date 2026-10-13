@@ -13,11 +13,15 @@ app.use(express.json());
 
 app.use('/api/patients', patientRoutes);
 
-app.get('/health', (_req, res) => {
+app.get('/', (_req, res) => {
+  res.json({ status: 'ok', message: 'API Consultorio Odontológico' });
+});
+
+app.get(['/health', '/api/health'], (_req, res) => {
   res.json({ status: 'ok' });
 });
 
-app.listen(port, () => {
+app.listen(Number(port), '0.0.0.0', () => {
   console.log(`Server running on port ${port}`);
 });
 
