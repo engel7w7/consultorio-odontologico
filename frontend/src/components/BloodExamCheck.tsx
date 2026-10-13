@@ -17,7 +17,8 @@ export const BloodExamCheck: React.FC<BloodExamCheckProps> = ({
   const handleToggle = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:3000/api/patients/${patientId}/blood-exams`, {
+      const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, '');
+      const res = await fetch(`${apiUrl}/api/patients/${patientId}/blood-exams`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ examenes_sangre_validados: !isValidated }),

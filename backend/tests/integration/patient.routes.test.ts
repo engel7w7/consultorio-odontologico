@@ -8,11 +8,42 @@ describe('QA Integration Tests - Rutas de Pacientes y Servidor', () => {
     vi.restoreAllMocks();
   });
 
+  it('GET / debe responder 200 y mensaje de la API', async () => {
+    const res = await request(app).get('/');
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('online');
+    expect(res.body.message).toBe('API Consultorio Odontológico');
+    expect(res.body.environment).toBeDefined();
+  });
+
   it('GET /health debe responder 200 y status ok', async () => {
     const res = await request(app).get('/health');
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('ok');
   });
+
+  it('GET /api/health debe responder 200 y status ok', async () => {
+    const res = await request(app).get('/api/health');
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('ok');
+  });
+
+  it('debe inicializar en modo produccion si NODE_ENV es production', async () => {
+    const originalEnv = process.env.NODE_ENV;
+    const originalPort = process.env.PORT;
+    try {
+      vi.resetModules();
+      process.env.NODE_ENV = 'production';
+      process.env.PORT = '10000';
+      const prodModule = await import('../../src/server');
+      expect(prodModule.default).toBeDefined();
+    } finally {
+      process.env.NODE_ENV = originalEnv;
+      process.env.PORT = originalPort;
+      vi.resetModules();
+    }
+  });
+
 
   it('POST /api/patients debe validar los datos de entrada y responder 400 si son inválidos', async () => {
     const res = await request(app)
