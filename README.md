@@ -1,1 +1,58 @@
-# Sistema de Gesti para Consultorio Odontolico 
+# Sistema de Gesti贸n para Consultorio Odontol贸gico
+
+Sistema web para la gesti贸n integral de historias cl铆nicas, registro de pacientes y control pre-operatorio (validaci贸n de ex谩menes m茅dicos).
+
+---
+
+## 馃殌 Entornos de Base de Datos (Local y Nube)
+
+El proyecto soporta tanto ejecuci贸n local con **Docker** como conexi贸n a **Supabase (PostgreSQL en la nube)** mediante Prisma.
+
+### Opci贸n 1: Base de Datos Local con Docker (Recomendada para Desarrollo y Pruebas)
+
+1. **Iniciar el contenedor de PostgreSQL:**
+   ```bash
+   docker compose up -d
+   ```
+   * Servicio: PostgreSQL 15 en `localhost:5433`
+   * Base de datos: `consultorio_test_db`
+   * Usuario: `test_user` / Contrase帽a: `test_password`
+
+2. **Configurar `backend/.env`:**
+   ```env
+   PORT=3000
+   NODE_ENV=development
+   DATABASE_URL="postgresql://test_user:test_password@localhost:5433/consultorio_test_db?schema=public"
+   DIRECT_URL="postgresql://test_user:test_password@localhost:5433/consultorio_test_db?schema=public"
+   ```
+
+3. **Aplicar migraciones:**
+   ```bash
+   cd backend
+   npx prisma migrate deploy
+   ```
+
+---
+
+### Opci贸n 2: Base de Datos en la Nube con Supabase
+
+Para conectar a tu proyecto en Supabase, edita `backend/.env`:
+
+```env
+PORT=3000
+NODE_ENV=development
+# Puerto 6543 (Transaction Pooler con pgbouncer):
+DATABASE_URL="postgresql://postgres.[REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres?pgbouncer=true"
+# Puerto 5432 (Conexi贸n directa para migraciones DDL):
+DIRECT_URL="postgresql://postgres.[REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:5432/postgres"
+```
+
+---
+
+## 馃И Pruebas y Cobertura (Vitest >= 80%)
+
+```bash
+cd backend
+npm run test:coverage
+npm run test:integration
+```
