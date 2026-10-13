@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  postgres-test:
+    image: postgres:15-alpine
+    container_name: consultorio-postgres-test
+    restart: always
+    environment:
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+      POSTGRES_DB: consultorio_test_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata_test:/var/lib/postgresql/data
+volumes:
+  pgdata_test:
