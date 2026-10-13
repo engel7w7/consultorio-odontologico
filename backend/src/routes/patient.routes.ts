@@ -7,6 +7,8 @@ const router = Router();
 const patientService = new PatientService(prisma);
 const patientController = new PatientController(patientService);
 
+router.post('/', patientController.createPatient);
+router.get('/', patientController.getAll);
 router.patch('/:id/blood-exams', patientController.updateExamStatus);
 
 export default router;
