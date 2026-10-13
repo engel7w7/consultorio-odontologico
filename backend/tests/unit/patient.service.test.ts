@@ -19,17 +19,23 @@ describe('QA Unit Tests: PatientService (HU-02 y HU-07)', () => {
 
   // HU-02: Registro de Paciente
   it('HU-02: debe registrar un paciente con examenes en false por defecto', async () => {
-    const input = { nombre: 'Carlos Mendoza', telefono: '78912345', edad: 35 };
-    mockPrisma.patient.create.mockResolvedValue({
-      id: 'uuid-1',
-      ...input,
-      examenes_sangre_validados: false,
-    });
-    const res = await service.createPatient(input);
-    expect(res.id).toBe('uuid-1');
-    expect(res.examenes_sangre_validados).toBe(false);
-    expect(mockPrisma.patient.create).toHaveBeenCalledOnce();
+  const input = { 
+    nombre: 'Carlos Mendoza', 
+    telefono: '78912345', 
+    edad: 35, 
+    examenes_sangre_validados: false 
+  };
+  
+  mockPrisma.patient.create.mockResolvedValue({
+    id: 'uuid-1',
+    ...input,
   });
+
+  const res = await service.createPatient(input);
+  expect(res.id).toBe('uuid-1');
+  expect(res.examenes_sangre_validados).toBe(false);
+  expect(mockPrisma.patient.create).toHaveBeenCalledOnce();
+});
 
   it('HU-02: debe listar el directorio de pacientes ordenados por fecha', async () => {
     mockPrisma.patient.findMany.mockResolvedValue([
