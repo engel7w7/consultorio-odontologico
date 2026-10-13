@@ -39,10 +39,7 @@ export class PatientController {
 
   updateExamStatus = async (req: Request, res: Response) => {
     try {
-      const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-      if (!id) {
-        return res.status(400).json({ error: 'ID de paciente requerido' });
-      }
+      const id = req.params.id as string;
       const parsed = examValidationSchema.parse(req.body);
       const updated = await this.service.setBloodExamValidation(
         id,

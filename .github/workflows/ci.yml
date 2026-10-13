@@ -1,0 +1,104 @@
+name: Integracion Continua (CI)
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop]
+
+jobs:
+  ci-verification:
+    name: Verificación Estricta de Calidad (SQAP)
+    runs-on: ubuntu-latest
+
+    # Contenedor de servicio para pruebas reales de base de datos aisladas
+    services:
+      postgres-ci:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: ci_user
+          POSTGRES_PASSWORD: ci_password
+          POSTGRES_DB: consultorio_ci_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://ci_user:ci_password@localhost:5432/consultorio_ci_db?schema=public
+      DIRECT_URL: postgresql://ci_user:ci_password@localhost:5432/consultorio_ci_db?schema=public
+
+    steps:
+      - name: 1. Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: 2. Configurar Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      # --- VERIFICACIÓN DE BACKEND ---
+      - name: 3. Instalar dependencias del Backend
+        run: |
+          cd backend
+          npm ci
+
+      - name: 4. Análisis Estático de Código (ESLint)
+        run: |
+          cd backend
+          npm run lint
+
+      - name: 5. Verificación de Tipos TypeScript (Backend)
+        run: |
+          cd backend
+          npx tsc --noEmit
+
+      - name: 6. Generar Cliente y Ejecutar Migraciones Prisma
+        run: |
+          cd backend
+          npx prisma generate
+          npx prisma migrate deploy
+
+      - name: 7. Pruebas Unitarias y Medición de Cobertura (Vitest >= 80%)
+        run: |
+          cd backend
+          npm run test:coverage
+
+      - name: 8. Pruebas de Integración de API (Supertest)
+        run: |
+          cd backend
+          npm run test:integration
+
+      - name: 9. Compilación del Backend
+        run: |
+          cd backend
+          npm run build
+
+      # --- VERIFICACIÓN DE FRONTEND ---
+      - name: 10. Instalar dependencias del Frontend
+        run: |
+          cd backend/..
+          cd frontend
+          npm ci
+
+      - name: 11. Verificación de Tipos y Compilación (React + Vite)
+        run: |
+          cd frontend
+          npm run build
+
+      # --- EVIDENCIA DE CALIDAD (SQAP Sección 12) ---
+      - name: 12. Guardar Reporte de Cobertura como Artefacto
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reporte-cobertura-vitest
+          path: backend/coverage/
+          retention-days: 7
