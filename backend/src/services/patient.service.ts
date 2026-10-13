@@ -1,7 +1,25 @@
 import { PrismaClient } from '@prisma/client';
+import { CreatePatientInput } from '../schemas/patient.schema.js';
 
 export class PatientService {
   constructor(private prisma: PrismaClient) {}
+
+  async createPatient(data: CreatePatientInput) {
+    return await this.prisma.patient.create({
+      data: {
+        nombre: data.nombre,
+        telefono: data.telefono,
+        edad: data.edad,
+        examenes_sangre_validados: data.examenes_sangre_validados ?? false,
+      },
+    });
+  }
+
+  async getAllPatients() {
+    return await this.prisma.patient.findMany({
+      orderBy: { created_at: 'desc' },
+    });
+  }
 
   async setBloodExamValidation(patientId: string, validado: boolean) {
     const existing = await this.prisma.patient.findUnique({
