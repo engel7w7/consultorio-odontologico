@@ -11,7 +11,9 @@
     "lint": "eslint src/**/*.ts",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:integration": "vitest run tests/integration"
+    "test:integration": "vitest run tests/integration",
+    "migrate:dev": "dotenv -e .env prisma migrate dev",
+    "migrate:prod": "dotenv -e .env.production prisma migrate deploy"
   },
   "keywords": [],
   "author": "",
@@ -31,6 +33,7 @@
     "@typescript-eslint/eslint-plugin": "^8.71.2",
     "@typescript-eslint/parser": "^8.71.2",
     "@vitest/coverage-v8": "^5.0.4",
+    "dotenv-cli": "^11.0.0",
     "eslint": "^10.12.0",
     "prisma": "^6.19.3",
     "supertest": "^7.3.1",
