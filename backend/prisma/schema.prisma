@@ -17,6 +17,7 @@ model Patient {
   created_at                DateTime      @default(now())
   updated_at                DateTime      @updatedAt
   appointments              Appointment[]
+  antecedente_medico        AntecedenteMedico?
 
   @@map("patients")
 }
@@ -42,4 +43,32 @@ model Appointment {
 
   @@index([fecha_inicio])
   @@map("appointments")
+}
+
+enum TipoDiabetes {
+  TIPO_1
+  TIPO_2
+  GESTACIONAL
+  OTRO
+
+  @@map("tipo_diabetes")
+}
+
+model AntecedenteMedico {
+  id                   String        @id @default(uuid())
+  patient_id           String        @unique
+  patient              Patient       @relation(fields: [patient_id], references: [id], onDelete: Restrict)
+  tiene_diabetes       Boolean       @default(false)
+  tipo_diabetes        TipoDiabetes?
+  tiene_hipertension   Boolean       @default(false)
+  tiene_cardiopatia    Boolean       @default(false)
+  toma_anticoagulantes Boolean       @default(false)
+  esta_embarazada      Boolean       @default(false)
+  alergias             String[]      @default([])
+  medicacion_actual    String?       @db.Text
+  otras_condiciones    String?       @db.Text
+  created_at           DateTime      @default(now())
+  updated_at           DateTime      @updatedAt
+
+  @@map("antecedentes_medicos")
 }
