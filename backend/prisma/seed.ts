@@ -1,10 +1,10 @@
-import { PrismaClient, EstadoCita } from '@prisma/client';
+import { PrismaClient, EstadoCita, TipoDiabetes } from '@prisma/client';
 import { getDayRangeUTC, getTodayDateStringLaPaz } from '../src/utils/date.utils.js';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Iniciando seed para HU-04 (Citas / Agenda Diaria)...');
+  console.log('🌱 Iniciando seed para el Consultorio Odontológico...');
 
   // 1. Obtener pacientes existentes o crear 4 pacientes ficticios si no hay ninguno
   let patients = await prisma.patient.findMany({ take: 4 });
@@ -47,7 +47,47 @@ async function main() {
     ]);
   }
 
-  // 2. Obtener fecha actual y rango en UTC según la zona horaria oficial America/La_Paz (UTC-4)
+  // 2. Sembrar antecedentes médicos ficticios (HU-03).
+  // IMPORTANTE: Este bloque DEBE ir ANTES de las citas porque la sección de citas
+  // contiene un 'return' temprano por idempotencia si ya existen citas para hoy.
+  // Colocar los antecedentes aquí garantiza que siempre se verifiquen y siembren sin ser omitidos.
+  console.log('🌱 Sembrando antecedentes médicos ficticios (HU-03)...');
+  await prisma.antecedenteMedico.upsert({
+    where: { patient_id: patients[0].id },
+    update: {},
+    create: {
+      patient_id: patients[0].id,
+      tiene_diabetes: true,
+      tipo_diabetes: TipoDiabetes.TIPO_2,
+      tiene_hipertension: false,
+      tiene_cardiopatia: false,
+      toma_anticoagulantes: false,
+      esta_embarazada: false,
+      alergias: ['Penicilina', 'Látex'],
+      medicacion_actual: 'Metformina 850mg c/12h',
+      otras_condiciones: null,
+    },
+  });
+
+  await prisma.antecedenteMedico.upsert({
+    where: { patient_id: patients[1 % patients.length].id },
+    update: {},
+    create: {
+      patient_id: patients[1 % patients.length].id,
+      tiene_diabetes: false,
+      tipo_diabetes: null,
+      tiene_hipertension: true,
+      tiene_cardiopatia: false,
+      toma_anticoagulantes: true,
+      esta_embarazada: false,
+      alergias: ['Lidocaína'],
+      medicacion_actual: 'Warfarina 5mg diario, Enalapril 10mg',
+      otras_condiciones: 'Monitoreo de tiempo de sangría previo a procedimientos quirúrgicos',
+    },
+  });
+  console.log('✅ Antecedentes médicos asegurados con éxito.');
+
+  // 3. Obtener fecha actual y rango en UTC según la zona horaria oficial America/La_Paz (UTC-4)
   const todayLaPaz = getTodayDateStringLaPaz();
   const { start, end } = getDayRangeUTC(todayLaPaz);
   console.log(`Fecha de hoy en America/La_Paz (UTC-4): ${todayLaPaz}`);
