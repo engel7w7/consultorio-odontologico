@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { PatientRegistrationForm } from './components/PatientRegistrationForm';
 import { BloodExamCheck } from './components/BloodExamCheck';
+import { DailyAgenda } from './components/DailyAgenda';
 
 function App() {
   const [examStatus, setExamStatus] = useState(false);
-  const [activeTab, setActiveTab] = useState<'registro' | 'validacion'>('registro');
+  const [activeTab, setActiveTab] = useState<'registro' | 'validacion' | 'agenda'>('registro');
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 p-6 sm:p-8">
@@ -40,6 +41,16 @@ function App() {
           >
             HU-07: Validación de Exámenes
           </button>
+          <button
+            onClick={() => setActiveTab('agenda')}
+            className={`pb-2 px-1 text-sm font-semibold transition border-b-2 ${
+              activeTab === 'agenda'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            HU-04: Agenda Diaria
+          </button>
         </div>
 
         <main className="space-y-6">
@@ -47,7 +58,7 @@ function App() {
             <div>
               <PatientRegistrationForm />
             </div>
-          ) : (
+          ) : activeTab === 'validacion' ? (
             <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
               <h2 className="text-lg font-semibold text-slate-800">
                 Expediente Clínico del Paciente
@@ -75,6 +86,8 @@ function App() {
                 />
               </div>
             </div>
+          ) : (
+            <DailyAgenda />
           )}
         </main>
       </div>
