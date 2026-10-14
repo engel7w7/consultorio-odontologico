@@ -13,9 +13,62 @@ model Patient {
   nombre                    String   @db.VarChar(150)
   telefono                  String   @db.VarChar(20)
   edad                      Int
-  examenes_sangre_validados Boolean  @default(false)
-  created_at                DateTime @default(now())
-  updated_at                DateTime @updatedAt
+  examenes_sangre_validados Boolean       @default(false)
+  created_at                DateTime      @default(now())
+  updated_at                DateTime      @updatedAt
+  appointments              Appointment[]
+  antecedente_medico        AntecedenteMedico?
 
   @@map("patients")
+}
+
+enum EstadoCita {
+  PROGRAMADA
+  ATENDIDA
+  CANCELADA
+
+  @@map("estado_cita")
+}
+
+model Appointment {
+  id           String      @id @default(uuid())
+  patient_id   String
+  patient      Patient     @relation(fields: [patient_id], references: [id], onDelete: Restrict)
+  motivo       String      @db.VarChar(200)
+  fecha_inicio DateTime
+  fecha_fin    DateTime
+  estado       EstadoCita  @default(PROGRAMADA)
+  created_at   DateTime    @default(now())
+  updated_at   DateTime    @updatedAt
+
+  @@index([fecha_inicio])
+  @@map("appointments")
+}
+
+enum TipoDiabetes {
+  TIPO_1
+  TIPO_2
+  GESTACIONAL
+  OTRO
+
+  @@map("tipo_diabetes")
+}
+
+model AntecedenteMedico {
+  id                   String        @id @default(uuid())
+  patient_id           String        @unique
+  patient              Patient       @relation(fields: [patient_id], references: [id], onDelete: Restrict)
+  tiene_diabetes       Boolean       @default(false)
+  tipo_diabetes        TipoDiabetes?
+  tiene_hipertension   Boolean       @default(false)
+  tiene_cardiopatia    Boolean       @default(false)
+  toma_anticoagulantes Boolean       @default(false)
+  esta_embarazada      Boolean       @default(false)
+  alergias             String[]      @default([])
+  medicacion_actual    String?       @db.Text
+  otras_condiciones    String?       @db.Text
+  created_at           DateTime      @default(now())
+  updated_at           DateTime      @updatedAt
+
+  @@map("antecedentes_medicos")
 }
