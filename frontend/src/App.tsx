@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { PatientRegistrationForm } from './components/PatientRegistrationForm';
 import { BloodExamCheck } from './components/BloodExamCheck';
 import { DailyAgenda } from './components/DailyAgenda';
+import { MedicalHistory } from './components/MedicalHistory';
 
 function App() {
   const [examStatus, setExamStatus] = useState(false);
-  const [activeTab, setActiveTab] = useState<'registro' | 'validacion' | 'agenda'>('registro');
+  const [activeTab, setActiveTab] = useState<'registro' | 'validacion' | 'agenda' | 'antecedentes'>('registro');
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 p-6 sm:p-8">
@@ -51,6 +52,16 @@ function App() {
           >
             HU-04: Agenda Diaria
           </button>
+          <button
+            onClick={() => setActiveTab('antecedentes')}
+            className={`pb-2 px-1 text-sm font-semibold transition border-b-2 ${
+              activeTab === 'antecedentes'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            HU-03: Antecedentes Médicos
+          </button>
         </div>
 
         <main className="space-y-6">
@@ -86,8 +97,10 @@ function App() {
                 />
               </div>
             </div>
-          ) : (
+          ) : activeTab === 'agenda' ? (
             <DailyAgenda />
+          ) : (
+            <MedicalHistory />
           )}
         </main>
       </div>
