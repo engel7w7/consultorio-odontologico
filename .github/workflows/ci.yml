@@ -1,13 +1,13 @@
-name: Integracion Continua (CI)
+name: Integración y Despliegue Continuo (CI/CD)
 
 on:
   pull_request:
     branches: [develop, main]
   push:
-    branches: [develop]
+    branches: [develop, main]
 
 jobs:
-  ci-verification:
+  quality-gate:
     name: Verificación Estricta de Calidad (SQAP)
     runs-on: ubuntu-latest
 
@@ -102,3 +102,21 @@ jobs:
           name: reporte-cobertura-vitest
           path: backend/coverage/
           retention-days: 7
+
+  deploy-production:
+    name: Despliegue Continuo a Producción
+    needs: quality-gate
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Disparar Despliegue Backend en Render
+        run: |
+          echo "Notificando a Render..."
+          curl -s -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+
+      - name: Disparar Despliegue Frontend en Vercel
+        run: |
+          echo "Notificando a Vercel..."
+          curl -s -X POST "${{ secrets.VERCEL_DEPLOY_HOOK_URL }}"
+
