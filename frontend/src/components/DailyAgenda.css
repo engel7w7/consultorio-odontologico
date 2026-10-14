@@ -1,0 +1,110 @@
+/**
+ * Estilos específicos y acotados para el componente DailyAgenda (.daily-agenda).
+ * Sobrescribe la apariencia por defecto de FullCalendar para lograr una interfaz sobria,
+ * clínica y altamente legible.
+ */
+
+.daily-agenda .fc {
+  --fc-border-color: #f1f5f9; /* slate-100 */
+  --fc-today-bg-color: transparent;
+  --fc-page-bg-color: #ffffff;
+  font-family: inherit;
+  font-size: 0.8125rem;
+}
+
+/* Ocultar barra de herramientas y encabezados nativos */
+.daily-agenda .fc-header-toolbar,
+.daily-agenda .fc .fc-col-header,
+.daily-agenda .fc .fc-timegrid-axis-cushion {
+  display: none;
+}
+
+/* Bordes de la grilla */
+.daily-agenda .fc-theme-standard td,
+.daily-agenda .fc-theme-standard th,
+.daily-agenda .fc-theme-standard .fc-scrollgrid {
+  border-color: #f1f5f9 !important;
+}
+
+.daily-agenda .fc .fc-scrollgrid {
+  border: none !important;
+}
+
+/* Franjas horarias */
+.daily-agenda .fc .fc-timegrid-slot {
+  height: 42px;
+  border-bottom: 1px solid #f1f5f9 !important;
+}
+
+/* Línea de las medias horas tenue */
+.daily-agenda .fc .fc-timegrid-slot-minor {
+  border-bottom: 1px dashed #f8fafc !important;
+}
+
+/* Etiquetas de la hora en el eje izquierdo */
+.daily-agenda .fc .fc-timegrid-slot-label {
+  vertical-align: top;
+}
+
+.daily-agenda .fc .fc-timegrid-slot-label-cushion {
+  font-size: 0.75rem;
+  color: #94a3b8; /* slate-400 */
+  font-variant-numeric: tabular-nums;
+  padding-right: 0.625rem;
+  padding-top: 0.25rem;
+  text-align: right;
+  display: block;
+}
+
+/* Quitar fondos y sombras por defecto de FullCalendar en los eventos */
+.daily-agenda .fc-timegrid-event-harness > .fc-timegrid-event {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 1px 2px !important;
+  border-radius: 0.375rem;
+  overflow: hidden;
+}
+
+.daily-agenda .fc-timegrid-event .fc-event-main {
+  padding: 0 !important;
+  height: 100%;
+}
+
+.daily-agenda .fc-timegrid-event:focus {
+  outline: 2px solid #cbd5e1 !important;
+  outline-offset: 1px;
+}
+
+/* Indicador de hora actual (fino en tono rose-500) */
+.daily-agenda .fc .fc-timegrid-now-indicator-line {
+  border-color: #f43f5e !important;
+  border-width: 1.5px 0 0 0 !important;
+  z-index: 10;
+}
+
+.daily-agenda .fc .fc-timegrid-now-indicator-arrow {
+  border-color: #f43f5e !important;
+  border-width: 4px !important;
+  z-index: 10;
+}
+
+/* Scrollbar sutil para el área del calendario */
+.daily-agenda .fc-scroller::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.daily-agenda .fc-scroller::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.daily-agenda .fc-scroller::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 9999px;
+}
+
+.daily-agenda .fc-scroller::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1;
+}
