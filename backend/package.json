@@ -19,6 +19,9 @@
     "studio:dev": "dotenv -e .env -- npx prisma studio",
     "studio:prod": "dotenv -e .env.production -- npx prisma studio"
   },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
