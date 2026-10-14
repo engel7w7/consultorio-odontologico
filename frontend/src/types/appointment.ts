@@ -1,0 +1,18 @@
+export type EstadoCita = 'PROGRAMADA' | 'ATENDIDA' | 'CANCELADA';
+
+export interface AppointmentPatient {
+  id: string;
+  nombre: string;
+}
+
+export interface Appointment {
+  id: string;
+  patient_id: string;
+  patient: AppointmentPatient;
+  motivo: string;
+  fecha_inicio: string;
+  fecha_fin: string;
+  estado: EstadoCita;
+  created_at: string;
+  updated_at: string;
+}
