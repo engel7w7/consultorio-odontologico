@@ -30,7 +30,7 @@ export const BloodExamCheck: React.FC<BloodExamCheckProps> = ({
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null);
 
-  // Cargar lista de pacientes para permitir seleccionar cualquier paciente del consultorio
+  // Cargar lista de pacientes
   const loadPatients = useCallback(async () => {
     try {
       const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, '');
@@ -39,7 +39,6 @@ export const BloodExamCheck: React.FC<BloodExamCheckProps> = ({
         const data: Patient[] = await res.json();
         setPatients(data);
 
-        // Si el initialPatientId coincide con alguno, asignarlo
         const found = data.find((p) => p.id === initialPatientId);
         if (found) {
           setSelectedPatient({
@@ -52,7 +51,7 @@ export const BloodExamCheck: React.FC<BloodExamCheckProps> = ({
         }
       }
     } catch {
-      // Si falla o está en pruebas aisladas, mantener estado base
+      // Estado de respaldo
     }
   }, [initialPatientId]);
 
@@ -60,7 +59,6 @@ export const BloodExamCheck: React.FC<BloodExamCheckProps> = ({
     loadPatients();
   }, [loadPatients]);
 
-  // Si cambia initialPatientId desde prop
   useEffect(() => {
     setSelectedPatientId(initialPatientId);
     if (initialPatientId === 'sample-patient-id') {
@@ -123,7 +121,6 @@ export const BloodExamCheck: React.FC<BloodExamCheckProps> = ({
       const updatedStatus = data.examenes_sangre_validados;
       setIsValidated(updatedStatus);
 
-      // Actualizar también en el estado local de pacientes
       setPatients((prev) =>
         prev.map((p) =>
           p.id === selectedPatientId
@@ -137,8 +134,8 @@ export const BloodExamCheck: React.FC<BloodExamCheckProps> = ({
       setMensaje({
         tipo: 'ok',
         texto: updatedStatus
-          ? 'Exámenes validados exitosamente. Luz verde médica concedida para extracción.'
-          : 'Validación médica revocada. El procedimiento queda en estado pendiente.',
+          ? 'Exámenes validados exitosamente. Luz verde médica concedida para la extracción.'
+          : 'Validación médica revocada. La intervención quirúrgica queda en estado pendiente.',
       });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Error al actualizar exámenes';
@@ -150,9 +147,13 @@ export const BloodExamCheck: React.FC<BloodExamCheckProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Banner de Regla de Negocio Clínica */}
-      <div className="p-4 rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50/40 text-blue-900 shadow-xs flex items-start space-x-3">
-        <div className="text-xl">🩺</div>
+      {/* Banner Clínico de Regla de Negocio */}
+      <div className="p-4 rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50/40 text-blue-900 shadow-xs flex items-start space-x-3.5">
+        <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0 mt-0.5">
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+        </div>
         <div className="space-y-1">
           <h4 className="text-sm font-bold text-blue-950">
             Regla de Negocio: Control Pre-Operatorio de Extracciones
@@ -167,14 +168,24 @@ export const BloodExamCheck: React.FC<BloodExamCheckProps> = ({
 
       {mensaje && (
         <div
-          className={`p-3.5 rounded-lg text-sm border flex items-center space-x-2 transition-all ${
+          className={`p-3.5 rounded-lg text-sm border flex items-center space-x-2.5 transition-all ${
             mensaje.tipo === 'ok'
               ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
               : 'bg-rose-50 border-rose-200 text-rose-800'
           }`}
         >
-          <span>{mensaje.tipo === 'ok' ? '✓' : '⚠️'}</span>
-          <span className="font-medium">{mensaje.texto}</span>
+          <div className="shrink-0">
+            {mensaje.tipo === 'ok' ? (
+              <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            ) : (
+              <svg className="w-4 h-4 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            )}
+          </div>
+          <span className="font-medium text-xs leading-relaxed">{mensaje.texto}</span>
         </div>
       )}
 
@@ -197,11 +208,11 @@ export const BloodExamCheck: React.FC<BloodExamCheckProps> = ({
           className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
         >
           <option value="sample-patient-id">
-            Juan Pérez (34 años) - Paciente de Prueba para Extracción de Tercer Molar
+            Juan Pérez (34 años) - Paciente de Evaluación para Extracción de Tercer Molar
           </option>
           {patients.map((p) => (
             <option key={p.id} value={p.id}>
-              {p.nombre} ({p.edad} años) - {p.examenes_sangre_validados ? '✓ Con Luz Verde' : '○ Exámenes Pendientes'}
+              {p.nombre} ({p.edad} años) - {p.examenes_sangre_validados ? 'Con Luz Verde Médica' : 'Exámenes Pendientes'}
             </option>
           ))}
         </select>
@@ -227,7 +238,7 @@ export const BloodExamCheck: React.FC<BloodExamCheckProps> = ({
           </div>
         </div>
 
-        {/* Ficha de Datos */}
+        {/* Ficha de Datos del Paciente */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
           <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100">
             <span className="text-xs text-slate-500 block mb-0.5">Paciente</span>
@@ -249,21 +260,31 @@ export const BloodExamCheck: React.FC<BloodExamCheckProps> = ({
         <div
           className={`p-5 rounded-xl border transition-all ${
             isValidated
-              ? 'bg-emerald-50/60 border-emerald-200 text-emerald-950'
-              : 'bg-amber-50/60 border-amber-200 text-amber-950'
+              ? 'bg-emerald-50/70 border-emerald-200 text-emerald-950'
+              : 'bg-amber-50/70 border-amber-200 text-amber-950'
           }`}
         >
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center space-x-2">
-                <span className="text-xl">{isValidated ? '🛡️' : '⚠️'}</span>
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${isValidated ? 'bg-emerald-600 text-white' : 'bg-amber-500 text-white'}`}>
+                  {isValidated ? (
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 9v2m0 4h.01" />
+                    </svg>
+                  )}
+                </div>
                 <h4 className="font-bold text-sm">
                   {isValidated
                     ? 'Luz Verde Médica Concedida'
                     : 'Procedimiento Quirúrgico Bloqueado'}
                 </h4>
               </div>
-              <p className="text-xs leading-relaxed max-w-xl">
+              <p className="text-xs leading-relaxed max-w-xl text-slate-700">
                 {isValidated
                   ? 'El paciente cuenta con parámetros de coagulación y hemograma aprobados. El odontólogo puede proceder con la extracción de forma segura.'
                   : 'Extracción no permitida según la regla de negocio de la clínica. Debe corroborar los exámenes de sangre antes de intervenir.'}
@@ -274,7 +295,7 @@ export const BloodExamCheck: React.FC<BloodExamCheckProps> = ({
               <button
                 onClick={handleToggle}
                 disabled={loading}
-                className={`px-4 py-2.5 text-xs font-bold rounded-lg shadow-sm hover:shadow transition text-white flex items-center space-x-2 disabled:opacity-50 ${
+                className={`px-4 py-2.5 text-xs font-bold rounded-lg shadow-xs hover:shadow transition text-white flex items-center space-x-2 disabled:opacity-50 ${
                   isValidated
                     ? 'bg-rose-600 hover:bg-rose-700'
                     : 'bg-emerald-600 hover:bg-emerald-700'
@@ -292,25 +313,40 @@ export const BloodExamCheck: React.FC<BloodExamCheckProps> = ({
           </div>
         </div>
 
-        {/* Checklist de Exámenes de Sangre */}
+        {/* Checklist de Parámetros Hematológicos */}
         <div className="space-y-3 pt-2 border-t border-slate-100">
           <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-600">
-            Checklist de Parámetros Hematológicos Pre-Quirúrgicos
+            Parámetros Hematológicos Pre-Quirúrgicos Requeridos
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-            <div className="p-3 rounded-lg border border-slate-200 bg-slate-50/70 space-y-1">
-              <span className="font-semibold text-slate-800 block">🩸 Hemograma Completo</span>
-              <p className="text-slate-500 text-[11px]">Recuento de plaquetas y glóbulos rojos dentro de rangos normales.</p>
+            <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 space-y-1.5">
+              <span className="font-semibold text-slate-800 flex items-center space-x-1.5">
+                <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                <span>Hemograma Completo</span>
+              </span>
+              <p className="text-slate-500 text-[11px] leading-relaxed">
+                Recuento plaquetario mayor a 150,000/µL y serie roja estable para hemostasia.
+              </p>
             </div>
 
-            <div className="p-3 rounded-lg border border-slate-200 bg-slate-50/70 space-y-1">
-              <span className="font-semibold text-slate-800 block">⏱️ Tiempos de Coagulación</span>
-              <p className="text-slate-500 text-[11px]">TP, TTPa e INR aptos para hemostasia normal durante la extracción.</p>
+            <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 space-y-1.5">
+              <span className="font-semibold text-slate-800 flex items-center space-x-1.5">
+                <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+                <span>Tiempos de Coagulación</span>
+              </span>
+              <p className="text-slate-500 text-[11px] leading-relaxed">
+                TP, TTPa e INR menores a 1.5 para garantizar coagulación normal post-extracción.
+              </p>
             </div>
 
-            <div className="p-3 rounded-lg border border-slate-200 bg-slate-50/70 space-y-1">
-              <span className="font-semibold text-slate-800 block">🧪 Glicemia en Ayunas</span>
-              <p className="text-slate-500 text-[11px]">Niveles de glucosa adecuados para cicatrización post-operatoria.</p>
+            <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 space-y-1.5">
+              <span className="font-semibold text-slate-800 flex items-center space-x-1.5">
+                <span className="w-2 h-2 rounded-full bg-teal-500"></span>
+                <span>Glicemia en Ayunas</span>
+              </span>
+              <p className="text-slate-500 text-[11px] leading-relaxed">
+                Niveles menores a 180 mg/dL para asegurar óptima cicatrización y prevenir infecciones.
+              </p>
             </div>
           </div>
         </div>
