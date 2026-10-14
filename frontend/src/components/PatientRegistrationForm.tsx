@@ -37,13 +37,19 @@ export const PatientRegistrationForm: React.FC<{ onPatientAdded?: () => void }> 
   };
 
   return (
-    <div className="max-w-lg mx-auto bg-white p-6 rounded-xl shadow-md border border-gray-100">
-      <h3 className="text-lg font-bold text-gray-800 mb-4">Registro de Paciente (HU-02)</h3>
+    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-5">
+      <div className="border-b border-slate-100 pb-3">
+        <h2 className="text-xl font-semibold text-slate-900 tracking-tight">
+          Registro de paciente
+        </h2>
+      </div>
 
       {mensaje && (
         <div
-          className={`p-3 mb-4 rounded text-sm ${
-            mensaje.tipo === 'ok' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+          className={`p-3 text-sm rounded-r-md border-l-4 ${
+            mensaje.tipo === 'ok'
+              ? 'bg-emerald-50 border-emerald-500 text-emerald-800'
+              : 'bg-rose-50 border-rose-500 text-rose-800'
           }`}
         >
           {mensaje.texto}
@@ -51,32 +57,40 @@ export const PatientRegistrationForm: React.FC<{ onPatientAdded?: () => void }> 
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Nombre Completo</label>
-          <input
-            type="text"
-            required
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
-            className="w-full mt-1 p-2 border rounded-md focus:ring-2 focus:ring-blue-500"
-            placeholder="Ej: Ana María Quispe"
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              Nombre completo
+            </label>
+            <input
+              type="text"
+              required
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
+              className="w-full h-10 px-3 text-sm border border-slate-300 rounded-md bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300"
+              placeholder="Ej: Ana María Quispe"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              Teléfono de contacto
+            </label>
+            <input
+              type="text"
+              required
+              value={telefono}
+              onChange={(e) => setTelefono(e.target.value)}
+              className="w-full h-10 px-3 text-sm border border-slate-300 rounded-md bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300"
+              placeholder="Ej: 71234567"
+            />
+          </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Teléfono de Contacto</label>
-          <input
-            type="text"
-            required
-            value={telefono}
-            onChange={(e) => setTelefono(e.target.value)}
-            className="w-full mt-1 p-2 border rounded-md focus:ring-2 focus:ring-blue-500"
-            placeholder="Ej: 71234567"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Edad</label>
+        <div className="max-w-xs">
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">
+            Edad
+          </label>
           <input
             type="number"
             required
@@ -84,17 +98,19 @@ export const PatientRegistrationForm: React.FC<{ onPatientAdded?: () => void }> 
             max="120"
             value={edad}
             onChange={(e) => setEdad(Number(e.target.value))}
-            className="w-full mt-1 p-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+            className="w-full h-10 px-3 text-sm border border-slate-300 rounded-md bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300"
             placeholder="Ej: 28"
           />
         </div>
 
-        <button
-          type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition"
-        >
-          Guardar en Directorio
-        </button>
+        <div className="pt-2">
+          <button
+            type="submit"
+            className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-sm font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400"
+          >
+            Guardar paciente
+          </button>
+        </div>
       </form>
     </div>
   );
