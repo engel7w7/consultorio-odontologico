@@ -36,31 +36,34 @@ export const BloodExamCheck: React.FC<BloodExamCheckProps> = ({
   };
 
   return (
-    <div className="p-4 border rounded-lg bg-white shadow-sm flex items-center justify-between">
+    <div className="p-4 border border-slate-200 rounded-lg bg-slate-50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
-        <h4 className="text-sm font-bold text-gray-700">Validación Médica de Exámenes (HU-07)</h4>
-        <p className="text-xs text-gray-500">Requisito obligatorio para procedimientos de extracción</p>
+        <h4 className="text-sm font-semibold text-slate-800">Validación médica de exámenes</h4>
+        <p className="text-xs text-slate-500 mt-0.5">Requisito obligatorio para procedimientos de extracción</p>
       </div>
 
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center gap-3">
         {isValidated ? (
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-300">
-            ● Luz Verde Médica
+          <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
+            Luz verde médica
           </span>
         ) : (
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-300">
-            ○ Exámenes Pendientes
+          <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200">
+            Exámenes pendientes
           </span>
         )}
 
         <button
+          type="button"
           onClick={handleToggle}
           disabled={loading}
-          className={`px-3 py-1.5 text-xs font-medium rounded transition text-white ${
-            isValidated ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'
+          className={`px-3.5 py-1.5 text-xs font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-slate-300 disabled:opacity-50 disabled:cursor-not-allowed ${
+            isValidated
+              ? 'bg-white border border-slate-300 hover:bg-slate-50 text-slate-700'
+              : 'bg-slate-900 hover:bg-slate-800 text-white'
           }`}
         >
-          {loading ? 'Guardando...' : isValidated ? 'Revocar Validación' : 'Validar Exámenes'}
+          {loading ? 'Guardando...' : isValidated ? 'Revocar validación' : 'Validar exámenes'}
         </button>
       </div>
     </div>
