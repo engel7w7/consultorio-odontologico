@@ -9,7 +9,7 @@ describe('QA E2E Tests - Sprint 1 (HU-02 y HU-07)', () => {
   });
 
   it('HU-02: El paciente registrado queda disponible en el directorio', () => {
-    cy.contains('button', 'HU-02: Registro de Paciente').click();
+    cy.contains('button', /Directorio de Pacientes|HU-02: Registro de Paciente/).click();
 
     cy.intercept('POST', 'http://localhost:3000/api/patients', {
       statusCode: 200,
@@ -31,7 +31,7 @@ describe('QA E2E Tests - Sprint 1 (HU-02 y HU-07)', () => {
   });
 
   it('HU-07: La validación de exámenes otorga luz verde médica', () => {
-    cy.contains('button', 'HU-07: Validación de Exámenes').click();
+    cy.contains('button', /Validación de Exámenes|HU-07: Validación de Exámenes/).click();
 
     cy.intercept('PATCH', 'http://localhost:3000/api/patients/sample-patient-id/blood-exams', {
       statusCode: 200,
