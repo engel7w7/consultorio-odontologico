@@ -4,123 +4,122 @@ import { BloodExamCheck } from './components/BloodExamCheck';
 import { DailyAgenda } from './components/DailyAgenda';
 import { MedicalHistory } from './components/MedicalHistory';
 
-function App() {
-  const [examStatus, setExamStatus] = useState(false);
-  const [activeTab, setActiveTab] = useState<'agenda' | 'registro' | 'antecedentes' | 'validacion'>('agenda');
+type TabType = 'registro' | 'validacion' | 'agenda' | 'antecedentes';
 
-  const [currentDateStr] = useState<string>(() => {
-    const now = new Date();
-    const weekday = new Intl.DateTimeFormat('es-BO', { weekday: 'long' }).format(now);
-    const day = now.getDate();
-    const month = new Intl.DateTimeFormat('es-BO', { month: 'long' }).format(now);
-    const capWeekday = weekday.charAt(0).toUpperCase() + weekday.slice(1);
-    return `${capWeekday} ${day} de ${month}`;
-  });
+function App() {
+  const [activeTab, setActiveTab] = useState<TabType>('registro');
+  const [selectedPatientForValidation, setSelectedPatientForValidation] = useState<string>('sample-patient-id');
+
+  const handleSelectForValidation = (patientId: string) => {
+    setSelectedPatientForValidation(patientId);
+    setActiveTab('validacion');
+  };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 p-4 sm:p-8">
-      <div className="max-w-5xl mx-auto space-y-6">
-        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-200 pb-4">
-          <div>
-            <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-              Consultorio Odontológico
-            </h1>
-          </div>
-          <div className="text-xs sm:text-sm text-slate-500 font-medium">
-            {currentDateStr}
-          </div>
-        </header>
-
-        {/* Navegación según el flujo clínico del odontólogo */}
-        <nav aria-label="Navegación principal" className="border-b border-slate-200">
-          <div className="flex space-x-6 overflow-x-auto">
-            <button
-              type="button"
-              onClick={() => setActiveTab('agenda')}
-              className={`pb-2.5 text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${
-                activeTab === 'agenda'
-                  ? 'border-slate-900 text-slate-900 font-semibold'
-                  : 'border-transparent text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              Agenda
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('registro')}
-              className={`pb-2.5 text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${
-                activeTab === 'registro'
-                  ? 'border-slate-900 text-slate-900 font-semibold'
-                  : 'border-transparent text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              Pacientes
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('antecedentes')}
-              className={`pb-2.5 text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${
-                activeTab === 'antecedentes'
-                  ? 'border-slate-900 text-slate-900 font-semibold'
-                  : 'border-transparent text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              Antecedentes
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('validacion')}
-              className={`pb-2.5 text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${
-                activeTab === 'validacion'
-                  ? 'border-slate-900 text-slate-900 font-semibold'
-                  : 'border-transparent text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              Exámenes
-            </button>
-          </div>
-        </nav>
-
-        <main className="space-y-6">
-          {activeTab === 'agenda' ? (
-            <DailyAgenda />
-          ) : activeTab === 'registro' ? (
-            <PatientRegistrationForm />
-          ) : activeTab === 'antecedentes' ? (
-            <MedicalHistory />
-          ) : (
-            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-5">
-              <div className="border-b border-slate-100 pb-3">
-                <h2 className="text-xl font-semibold text-slate-900 tracking-tight">
-                  Expediente clínico del paciente
-                </h2>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-                <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                  <span className="text-xs text-slate-500 block mb-0.5">Paciente</span>
-                  <span className="font-medium text-slate-900">Juan Pérez</span>
-                </div>
-                <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                  <span className="text-xs text-slate-500 block mb-0.5">Edad</span>
-                  <span className="font-medium text-slate-900">34 años</span>
-                </div>
-                <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                  <span className="text-xs text-slate-500 block mb-0.5">Procedimiento</span>
-                  <span className="font-medium text-slate-900">Extracción de tercer molar</span>
-                </div>
-              </div>
-
-              <div className="pt-1">
-                <BloodExamCheck
-                  patientId="sample-patient-id"
-                  initialStatus={examStatus}
-                  onStatusChange={setExamStatus}
-                />
-              </div>
+    <div className="min-h-screen bg-slate-50 text-slate-800">
+      {/* Barra Superior de la Clínica */}
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-20 shadow-xs">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center text-xl shadow-xs">
+              🦷
             </div>
-          )}
-        </main>
-      </div>
+            <div>
+              <h1 className="text-lg font-bold text-slate-900 tracking-tight">
+                Clínica Dental OdontoSalud
+              </h1>
+              <p className="text-xs text-slate-500 font-medium">
+                Sistema Integral de Gestión Clínica & Control Quirúrgico
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-3 self-end sm:self-auto text-xs">
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-medium">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>
+              En Línea
+            </span>
+            <span className="text-slate-400">|</span>
+            <span className="text-slate-600 font-medium">Dr. Odontólogo Titular</span>
+          </div>
+        </div>
+
+        {/* Navegación Modular por Especialidad */}
+        <div className="border-t border-slate-100 bg-slate-50/60">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <nav className="flex space-x-2 sm:space-x-4 overflow-x-auto py-2">
+              <button
+                onClick={() => setActiveTab('registro')}
+                title="HU-02: Registro de Paciente"
+                className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition shrink-0 ${
+                  activeTab === 'registro'
+                    ? 'bg-white text-blue-600 shadow-xs border border-slate-200'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
+                }`}
+              >
+                <span>👥</span>
+                <span>Directorio de Pacientes</span>
+                <span className="sr-only">HU-02: Registro de Paciente</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('validacion')}
+                title="HU-07: Validación de Exámenes"
+                className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition shrink-0 ${
+                  activeTab === 'validacion'
+                    ? 'bg-white text-blue-600 shadow-xs border border-slate-200'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
+                }`}
+              >
+                <span>🩺</span>
+                <span>Validación de Exámenes</span>
+                <span className="sr-only">HU-07: Validación de Exámenes</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('agenda')}
+                title="HU-04: Agenda Diaria"
+                className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition shrink-0 ${
+                  activeTab === 'agenda'
+                    ? 'bg-white text-blue-600 shadow-xs border border-slate-200'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
+                }`}
+              >
+                <span>📅</span>
+                <span>Agenda Diaria</span>
+                <span className="sr-only">HU-04: Agenda Diaria</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('antecedentes')}
+                title="HU-03: Antecedentes Médicos"
+                className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition shrink-0 ${
+                  activeTab === 'antecedentes'
+                    ? 'bg-white text-blue-600 shadow-xs border border-slate-200'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
+                }`}
+              >
+                <span>📋</span>
+                <span>Antecedentes Médicos</span>
+                <span className="sr-only">HU-03: Antecedentes Médicos</span>
+              </button>
+            </nav>
+          </div>
+        </div>
+      </header>
+
+      {/* Contenido Principal */}
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {activeTab === 'registro' ? (
+          <PatientRegistrationForm onSelectForValidation={handleSelectForValidation} />
+        ) : activeTab === 'validacion' ? (
+          <BloodExamCheck patientId={selectedPatientForValidation} />
+        ) : activeTab === 'agenda' ? (
+          <DailyAgenda />
+        ) : (
+          <MedicalHistory />
+        )}
+      </main>
     </div>
   );
 }
