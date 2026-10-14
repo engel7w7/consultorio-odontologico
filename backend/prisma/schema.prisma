@@ -13,9 +13,33 @@ model Patient {
   nombre                    String   @db.VarChar(150)
   telefono                  String   @db.VarChar(20)
   edad                      Int
-  examenes_sangre_validados Boolean  @default(false)
-  created_at                DateTime @default(now())
-  updated_at                DateTime @updatedAt
+  examenes_sangre_validados Boolean       @default(false)
+  created_at                DateTime      @default(now())
+  updated_at                DateTime      @updatedAt
+  appointments              Appointment[]
 
   @@map("patients")
+}
+
+enum EstadoCita {
+  PROGRAMADA
+  ATENDIDA
+  CANCELADA
+
+  @@map("estado_cita")
+}
+
+model Appointment {
+  id           String      @id @default(uuid())
+  patient_id   String
+  patient      Patient     @relation(fields: [patient_id], references: [id], onDelete: Restrict)
+  motivo       String      @db.VarChar(200)
+  fecha_inicio DateTime
+  fecha_fin    DateTime
+  estado       EstadoCita  @default(PROGRAMADA)
+  created_at   DateTime    @default(now())
+  updated_at   DateTime    @updatedAt
+
+  @@index([fecha_inicio])
+  @@map("appointments")
 }
