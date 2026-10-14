@@ -2,7 +2,7 @@
 **Proyecto:** Sistema de Gestión para Consultorio Odontológico  
 **Normas de Referencia:** ISO/IEC 25010, ISO/IEC 14598, IEEE Std 730  
 **Fecha de Cierre:** 14 de octubre de 2026  
-**Alcance:** US-02, US-07, US-03, US-04 (9 Puntos de Historia)  
+**Alcance:** HU-02, HU-07, HU-03, HU-04 (9 Puntos de Historia)  
 
 ---
 
@@ -19,8 +19,8 @@ Durante el Sprint 1 se implementaron las historias clínicas fundacionales del s
 | **Mantenibilidad** | Cobertura de Ramas (Branches) | $\ge 80.0\%$ | **87.23%** (82/94) | **Aprobado** | Reporte Vitest Coverage (HTML) |
 | **Mantenibilidad** | Cobertura de Funciones (Functions) | $\ge 80.0\%$ | **100.00%** (28/28) | **Aprobado** | Reporte Vitest Coverage (HTML) |
 | **Mantenibilidad** | Cobertura de Sentencias (Statements) | $\ge 80.0\%$ | **99.40%** (167/168) | **Aprobado** | Reporte Vitest Coverage (HTML) |
-| **Adecuación Funcional** | Casos críticos aprobados (US-02, US-07) | $100\%$ | **100%** pasaron en verde | **Aprobado** | Vitest + Supertest en GitHub Actions |
-| **Fiabilidad** | Persistencia y aislamiento sin mezcla de datos (US-03) | $100\%$ | **100%** en suite aislada | **Aprobado** | Supertest + Contenedor PostgreSQL CI |
+| **Adecuación Funcional** | Casos críticos aprobados (HU-02, HU-07) | $100\%$ | **100%** pasaron en verde | **Aprobado** | Vitest + Supertest en GitHub Actions |
+| **Fiabilidad** | Persistencia y aislamiento sin mezcla de datos (HU-03) | $100\%$ | **100%** en suite aislada | **Aprobado** | Supertest + Contenedor PostgreSQL CI |
 | **Portabilidad** | Despliegue en ambiente limpio en la nube | $100\%$ exitosa | **100%** operativo | **Aprobado** | Render (API) + Vercel (Web) + Supabase |
 | **Seguridad** | Exposición de secretos y control de acceso | 0 críticos / S1 | **0 hallazgos críticos** | **Aprobado** | Variables en GitHub Secrets y .env excluido |
 
