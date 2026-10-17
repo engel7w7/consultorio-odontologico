@@ -27,4 +27,22 @@ export interface MedicalHistoryPayload {
   alergias: string[];
   medicacion_actual?: string | null;
   otras_condiciones?: string | null;
+  motivo?: string;
+  usuario_id?: string;
+}
+
+export interface MedicalHistoryAudit {
+  id: string;
+  patient_id: string;
+  patientId?: string;
+  campo: string;
+  valor_anterior: string | null;
+  valorAnterior?: string | null;
+  valor_nuevo: string | null;
+  valorNuevo?: string | null;
+  motivo: string;
+  usuario_id?: string | null;
+  usuarioId?: string | null;
+  fecha_hora: string;
+  fechaHora?: string;
 }
