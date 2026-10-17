@@ -10,6 +10,10 @@ export interface Patient {
   fecha_validacion_examenes?: string | null;
   created_at: string;
   updated_at: string;
+  tieneAntecedentesCriticos?: boolean;
+  tiene_antecedentes_criticos?: boolean;
+  tiene_antecedentes?: boolean;
+  alertas_criticas?: string[];
 }
 
 export interface UpdateBloodExamPayload {
