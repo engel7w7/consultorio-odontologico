@@ -77,7 +77,61 @@ describe('QA Unit Tests: PatientService (HU-02 y HU-07)', () => {
     expect(updated.examenes_sangre_validados).toBe(true);
     expect(mockPrisma.patient.update).toHaveBeenCalledWith({
       where: { id: 'uuid-1' },
-      data: { examenes_sangre_validados: true },
+      data: expect.objectContaining({ examenes_sangre_validados: true }),
+    });
+  });
+
+  it('HU-07: debe registrar validacion con evidencia de estudio escaneado y parametros', async () => {
+    mockPrisma.patient.findUnique.mockResolvedValue({ id: 'uuid-1', examenes_sangre_validados: false });
+    mockPrisma.patient.update.mockResolvedValue({
+      id: 'uuid-1',
+      examenes_sangre_validados: true,
+      evidencia_archivo_nombre: 'hemograma.pdf',
+      evidencia_archivo_url: 'data:application/pdf;base64,...',
+      parametros_hematologicos: 'Plaquetas: 250000, INR: 1.0',
+    });
+
+    const updated = await service.setBloodExamValidation('uuid-1', true, {
+      evidencia_archivo_nombre: 'hemograma.pdf',
+      evidencia_archivo_url: 'data:application/pdf;base64,...',
+      parametros_hematologicos: 'Plaquetas: 250000, INR: 1.0',
+    });
+
+    expect(updated.examenes_sangre_validados).toBe(true);
+    expect(mockPrisma.patient.update).toHaveBeenCalledWith({
+      where: { id: 'uuid-1' },
+      data: expect.objectContaining({
+        examenes_sangre_validados: true,
+        evidencia_archivo_nombre: 'hemograma.pdf',
+      }),
+    });
+  });
+
+  it('HU-07: debe filtrar por busqueda, estado y ordenar alfabeticamente', async () => {
+    mockPrisma.patient.findMany.mockResolvedValue([
+      { id: '1', nombre: 'Ana Maria' },
+      { id: '2', nombre: 'Carlos' },
+    ]);
+
+    const res = await service.getAllPatients({ search: 'Ana', status: 'validated', order: 'asc' });
+    expect(res).toHaveLength(2);
+    expect(mockPrisma.patient.findMany).toHaveBeenCalledWith({
+      where: {
+        nombre: { contains: 'Ana', mode: 'insensitive' },
+        examenes_sangre_validados: true,
+      },
+      orderBy: { nombre: 'asc' },
+    });
+  });
+
+  it('HU-07: debe filtrar por estado pending y ordenar desc', async () => {
+    mockPrisma.patient.findMany.mockResolvedValue([]);
+    await service.getAllPatients({ status: 'pending', order: 'desc' });
+    expect(mockPrisma.patient.findMany).toHaveBeenCalledWith({
+      where: {
+        examenes_sangre_validados: false,
+      },
+      orderBy: { nombre: 'desc' },
     });
   });
 
