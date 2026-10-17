@@ -110,7 +110,26 @@ describe('QA Integration Tests - Rutas de Pacientes y Servidor', () => {
     expect(res.body.error).toBe('Fallo de lectura en BD');
   });
 
-  it('PATCH /api/patients/:id/blood-exams debe actualizar exitosamente al paciente', async () => {
+  it('GET /api/patients debe filtrar por parametros de query (busqueda y orden)', async () => {
+    vi.spyOn(prisma.patient, 'findMany').mockResolvedValue([
+      {
+        id: 'uuid-1',
+        nombre: 'Ana María',
+        telefono: '70000001',
+        edad: 28,
+        examenes_sangre_validados: true,
+        created_at: new Date(),
+        updated_at: new Date(),
+      } as any,
+    ]);
+
+    const res = await request(app).get('/api/patients?search=Ana&status=validated&order=asc');
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(1);
+    expect(res.body[0].nombre).toBe('Ana María');
+  });
+
+  it('PATCH /api/patients/:id/blood-exams debe actualizar exitosamente al paciente con evidencia', async () => {
     vi.spyOn(prisma.patient, 'findUnique').mockResolvedValue({
       id: 'uuid-1',
       nombre: 'Lucía Méndez',
@@ -121,14 +140,23 @@ describe('QA Integration Tests - Rutas de Pacientes y Servidor', () => {
       id: 'uuid-1',
       nombre: 'Lucía Méndez',
       examenes_sangre_validados: true,
+      evidencia_archivo_nombre: 'hemograma_escan.pdf',
+      evidencia_archivo_url: 'data:application/pdf;base64,mock',
+      parametros_hematologicos: 'Plaquetas: 250000',
     } as any);
 
     const res = await request(app)
       .patch('/api/patients/uuid-1/blood-exams')
-      .send({ examenes_sangre_validados: true });
+      .send({
+        examenes_sangre_validados: true,
+        evidencia_archivo_nombre: 'hemograma_escan.pdf',
+        evidencia_archivo_url: 'data:application/pdf;base64,mock',
+        parametros_hematologicos: 'Plaquetas: 250000',
+      });
 
     expect([200, 204]).toContain(res.status);
     expect(res.body.examenes_sangre_validados).toBe(true);
+    expect(res.body.evidencia_archivo_nombre).toBe('hemograma_escan.pdf');
   });
 
   it('PATCH /api/patients/:id/blood-exams debe responder 404 si el paciente no existe', async () => {

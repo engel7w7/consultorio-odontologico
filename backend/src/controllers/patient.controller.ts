@@ -5,6 +5,9 @@ import { z } from 'zod';
 
 const examValidationSchema = z.object({
   examenes_sangre_validados: z.boolean(),
+  evidencia_archivo_nombre: z.string().nullable().optional(),
+  evidencia_archivo_url: z.string().nullable().optional(),
+  parametros_hematologicos: z.string().nullable().optional(),
 });
 
 export class PatientController {
@@ -27,9 +30,14 @@ export class PatientController {
     }
   };
 
-  getAll = async (_req: Request, res: Response) => {
+  getAll = async (req: Request, res: Response) => {
     try {
-      const patients = await this.service.getAllPatients();
+      const { search, status, order } = (req.query || {}) as {
+        search?: string;
+        status?: string;
+        order?: 'asc' | 'desc';
+      };
+      const patients = await this.service.getAllPatients({ search, status, order });
       return res.status(200).json(patients);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error inesperado';
@@ -43,7 +51,12 @@ export class PatientController {
       const parsed = examValidationSchema.parse(req.body);
       const updated = await this.service.setBloodExamValidation(
         id,
-        parsed.examenes_sangre_validados
+        parsed.examenes_sangre_validados,
+        {
+          evidencia_archivo_nombre: parsed.evidencia_archivo_nombre,
+          evidencia_archivo_url: parsed.evidencia_archivo_url,
+          parametros_hematologicos: parsed.parametros_hematologicos,
+        }
       );
       return res.status(200).json(updated);
     } catch (error: unknown) {
