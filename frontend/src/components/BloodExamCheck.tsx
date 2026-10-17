@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import type { Patient } from '../types/patient';
 
 interface BloodExamCheckProps {
@@ -19,18 +19,34 @@ export const BloodExamCheck: React.FC<BloodExamCheckProps> = ({
     edad: number | string;
     procedimiento: string;
     telefono?: string;
+    evidencia_archivo_nombre?: string | null;
+    evidencia_archivo_url?: string | null;
+    parametros_hematologicos?: string | null;
+    fecha_validacion_examenes?: string | null;
   }>({
     nombre: 'Juan Pérez',
     edad: 34,
     procedimiento: 'Extracción de Tercer Molar (Cirugía)',
     telefono: '77712345',
+    evidencia_archivo_nombre: 'estudio_hematologico_juan_perez.pdf',
+    evidencia_archivo_url: null,
+    parametros_hematologicos: 'Plaquetas: 240,000/µL | INR: 1.05 | Hemoglobina: 14.8 g/dL',
+    fecha_validacion_examenes: null,
   });
 
   const [isValidated, setIsValidated] = useState(initialStatus);
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null);
 
-  // Cargar lista de pacientes
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'validated' | 'pending'>('all');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | 'recent'>('asc');
+
+  const [uploadedFileName, setUploadedFileName] = useState<string>('');
+  const [uploadedFileUrl, setUploadedFileUrl] = useState<string>('');
+  const [parametrosTexto, setParametrosTexto] = useState<string>('');
+  const [showPreviewModal, setShowPreviewModal] = useState<boolean>(false);
+
   const loadPatients = useCallback(async () => {
     try {
       const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, '');
@@ -44,10 +60,17 @@ export const BloodExamCheck: React.FC<BloodExamCheckProps> = ({
           setSelectedPatient({
             nombre: found.nombre,
             edad: found.edad,
-            procedimiento: 'Extracción Dental Planificada',
+            procedimiento: 'Extracción Dental Quirúrgica',
             telefono: found.telefono,
+            evidencia_archivo_nombre: found.evidencia_archivo_nombre,
+            evidencia_archivo_url: found.evidencia_archivo_url,
+            parametros_hematologicos: found.parametros_hematologicos,
+            fecha_validacion_examenes: found.fecha_validacion_examenes,
           });
           setIsValidated(found.examenes_sangre_validados);
+          setUploadedFileName(found.evidencia_archivo_nombre || '');
+          setUploadedFileUrl(found.evidencia_archivo_url || '');
+          setParametrosTexto(found.parametros_hematologicos || '');
         }
       }
     } catch {
@@ -67,8 +90,15 @@ export const BloodExamCheck: React.FC<BloodExamCheckProps> = ({
         edad: 34,
         procedimiento: 'Extracción de Tercer Molar (Cirugía)',
         telefono: '77712345',
+        evidencia_archivo_nombre: 'estudio_hematologico_juan_perez.pdf',
+        evidencia_archivo_url: null,
+        parametros_hematologicos: 'Plaquetas: 240,000/µL | INR: 1.05 | Hemoglobina: 14.8 g/dL',
+        fecha_validacion_examenes: null,
       });
       setIsValidated(initialStatus);
+      setUploadedFileName('estudio_hematologico_juan_perez.pdf');
+      setUploadedFileUrl('');
+      setParametrosTexto('Plaquetas: 240,000/µL | INR: 1.05 | Hemoglobina: 14.8 g/dL');
     }
   }, [initialPatientId, initialStatus]);
 
@@ -82,8 +112,15 @@ export const BloodExamCheck: React.FC<BloodExamCheckProps> = ({
         edad: 34,
         procedimiento: 'Extracción de Tercer Molar (Cirugía)',
         telefono: '77712345',
+        evidencia_archivo_nombre: 'estudio_hematologico_juan_perez.pdf',
+        evidencia_archivo_url: null,
+        parametros_hematologicos: 'Plaquetas: 240,000/µL | INR: 1.05 | Hemoglobina: 14.8 g/dL',
+        fecha_validacion_examenes: null,
       });
       setIsValidated(false);
+      setUploadedFileName('estudio_hematologico_juan_perez.pdf');
+      setUploadedFileUrl('');
+      setParametrosTexto('Plaquetas: 240,000/µL | INR: 1.05 | Hemoglobina: 14.8 g/dL');
       return;
     }
 
@@ -92,24 +129,91 @@ export const BloodExamCheck: React.FC<BloodExamCheckProps> = ({
       setSelectedPatient({
         nombre: patient.nombre,
         edad: patient.edad,
-        procedimiento: 'Extracción Dental Planificada',
+        procedimiento: 'Extracción Dental Quirúrgica',
         telefono: patient.telefono,
+        evidencia_archivo_nombre: patient.evidencia_archivo_nombre,
+        evidencia_archivo_url: patient.evidencia_archivo_url,
+        parametros_hematologicos: patient.parametros_hematologicos,
+        fecha_validacion_examenes: patient.fecha_validacion_examenes,
       });
       setIsValidated(patient.examenes_sangre_validados);
+      setUploadedFileName(patient.evidencia_archivo_nombre || '');
+      setUploadedFileUrl(patient.evidencia_archivo_url || '');
+      setParametrosTexto(patient.parametros_hematologicos || '');
     }
   };
 
-  const handleToggle = async () => {
+  const filteredPatients = useMemo(() => {
+    const list = [...patients];
+
+    const filtered = list.filter((p) => {
+      const matchSearch =
+        p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.telefono.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchStatus =
+        statusFilter === 'all'
+          ? true
+          : statusFilter === 'validated'
+          ? p.examenes_sangre_validados === true
+          : p.examenes_sangre_validados === false;
+
+      return matchSearch && matchStatus;
+    });
+
+    return filtered.sort((a, b) => {
+      if (sortOrder === 'asc') {
+        return a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' });
+      }
+      if (sortOrder === 'desc') {
+        return b.nombre.localeCompare(a.nombre, 'es', { sensitivity: 'base' });
+      }
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+  }, [patients, searchTerm, statusFilter, sortOrder]);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadedFileName(file.name);
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      setUploadedFileUrl(result);
+      setMensaje({
+        tipo: 'ok',
+        texto: `Archivo "${file.name}" cargado exitosamente. Listo para validar la evidencia.`,
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveEvidence = async (targetValidationStatus: boolean) => {
     setLoading(true);
     setMensaje(null);
-    const targetStatus = !isValidated;
+
+    if (targetValidationStatus && !uploadedFileName && !uploadedFileUrl) {
+      setMensaje({
+        tipo: 'error',
+        texto: 'Por favor, adjunta el estudio escaneado para conceder la Luz Verde Médica.',
+      });
+      setLoading(false);
+      return;
+    }
 
     try {
       const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, '');
       const res = await fetch(`${apiUrl}/api/patients/${selectedPatientId}/blood-exams`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ examenes_sangre_validados: targetStatus }),
+        body: JSON.stringify({
+          examenes_sangre_validados: targetValidationStatus,
+          evidencia_archivo_nombre: targetValidationStatus ? uploadedFileName : null,
+          evidencia_archivo_url: targetValidationStatus ? uploadedFileUrl : null,
+          parametros_hematologicos: targetValidationStatus ? parametrosTexto : null,
+        }),
       });
 
       if (!res.ok) {
@@ -124,17 +228,32 @@ export const BloodExamCheck: React.FC<BloodExamCheckProps> = ({
       setPatients((prev) =>
         prev.map((p) =>
           p.id === selectedPatientId
-            ? { ...p, examenes_sangre_validados: updatedStatus }
+            ? {
+                ...p,
+                examenes_sangre_validados: updatedStatus,
+                evidencia_archivo_nombre: data.evidencia_archivo_nombre,
+                evidencia_archivo_url: data.evidencia_archivo_url,
+                parametros_hematologicos: data.parametros_hematologicos,
+                fecha_validacion_examenes: data.fecha_validacion_examenes,
+              }
             : p
         )
       );
+
+      setSelectedPatient((prev) => ({
+        ...prev,
+        evidencia_archivo_nombre: data.evidencia_archivo_nombre,
+        evidencia_archivo_url: data.evidencia_archivo_url,
+        parametros_hematologicos: data.parametros_hematologicos,
+        fecha_validacion_examenes: data.fecha_validacion_examenes,
+      }));
 
       if (onStatusChange) onStatusChange(updatedStatus);
 
       setMensaje({
         tipo: 'ok',
         texto: updatedStatus
-          ? 'Exámenes validados exitosamente. Luz verde médica concedida para la extracción.'
+          ? 'Evidencia guardada y Luz Verde Médica concedida exitosamente para el procedimiento de extracción.'
           : 'Validación médica revocada. La intervención quirúrgica queda en estado pendiente.',
       });
     } catch (err: unknown) {
@@ -147,7 +266,6 @@ export const BloodExamCheck: React.FC<BloodExamCheckProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Banner Clínico de Regla de Negocio */}
       <div className="p-4 rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50/40 text-blue-900 shadow-xs flex items-start space-x-3.5">
         <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0 mt-0.5">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -156,12 +274,10 @@ export const BloodExamCheck: React.FC<BloodExamCheckProps> = ({
         </div>
         <div className="space-y-1">
           <h4 className="text-sm font-bold text-blue-950">
-            Regla de Negocio: Control Pre-Operatorio de Extracciones
+            Regla de Negocio: Control Pre-Operatorio de Extracciones (HU-07)
           </h4>
           <p className="text-xs text-blue-800 leading-relaxed">
-            Como odontólogo, para proceder con cualquier extracción o cirugía bucal invasiva, es
-            obligatorio verificar y registrar la validación de los exámenes de sangre (hemograma,
-            plaquetas y tiempos de coagulación) para obtener la <strong>Luz Verde Médica</strong>.
+            Es obligatorio registrar y subir las evidencias de los estudios hematológicos escaneados (hemograma, recuento de plaquetas y tiempos de coagulación) para respaldar la <strong>Luz Verde Médica</strong> antes de realizar cualquier extracción o cirugía bucal invasiva.
           </p>
         </div>
       </div>
@@ -189,36 +305,174 @@ export const BloodExamCheck: React.FC<BloodExamCheckProps> = ({
         </div>
       )}
 
-      {/* Selector de Pacientes */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <label className="text-xs font-semibold uppercase tracking-wider text-slate-700">
-            Seleccionar Paciente para Validación Pre-Operatoria
-          </label>
-          <span className="text-xs text-slate-400">
-            {patients.length > 0
-              ? `${patients.length} pacientes en sistema`
-              : 'Paciente de evaluación rápida'}
-          </span>
+      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+          <div>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800">
+              Directorio de Pacientes para Validación de Exámenes
+            </h3>
+            <p className="text-xs text-slate-500">
+              Filtra y ordena alfabéticamente para seleccionar al paciente a evaluar
+            </p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
+              {filteredPatients.length} de {patients.length} pacientes
+            </span>
+          </div>
         </div>
 
-        <select
-          value={selectedPatientId}
-          onChange={(e) => handleSelectPatient(e.target.value)}
-          className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
-        >
-          <option value="sample-patient-id">
-            Juan Pérez (34 años) - Paciente de Evaluación para Extracción de Tercer Molar
-          </option>
-          {patients.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.nombre} ({p.edad} años) - {p.examenes_sangre_validados ? 'Con Luz Verde Médica' : 'Exámenes Pendientes'}
-            </option>
-          ))}
-        </select>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Buscar por nombre o teléfono..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
+            />
+            <svg
+              className="w-4 h-4 text-slate-400 absolute left-3 top-2.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+
+          <div className="flex rounded-lg border border-slate-200 bg-slate-50 p-0.5">
+            <button
+              type="button"
+              onClick={() => setStatusFilter('all')}
+              className={`flex-1 py-1.5 px-2 rounded-md font-semibold text-[11px] transition ${
+                statusFilter === 'all'
+                  ? 'bg-white text-blue-600 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Todos
+            </button>
+            <button
+              type="button"
+              onClick={() => setStatusFilter('validated')}
+              className={`flex-1 py-1.5 px-2 rounded-md font-semibold text-[11px] transition ${
+                statusFilter === 'validated'
+                  ? 'bg-white text-emerald-600 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Luz Verde
+            </button>
+            <button
+              type="button"
+              onClick={() => setStatusFilter('pending')}
+              className={`flex-1 py-1.5 px-2 rounded-md font-semibold text-[11px] transition ${
+                statusFilter === 'pending'
+                  ? 'bg-white text-amber-600 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Pendientes
+            </button>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <label className="text-[11px] font-medium text-slate-500 whitespace-nowrap">
+              Orden:
+            </label>
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc' | 'recent')}
+              className="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs font-semibold focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
+            >
+              <option value="asc">Alfabético (A - Z)</option>
+              <option value="desc">Alfabético (Z - A)</option>
+              <option value="recent">Más recientes</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="max-h-56 overflow-y-auto border border-slate-200 rounded-xl divide-y divide-slate-100 bg-slate-50/30">
+          <button
+            type="button"
+            onClick={() => handleSelectPatient('sample-patient-id')}
+            className={`w-full p-3 text-left transition flex items-center justify-between gap-3 ${
+              selectedPatientId === 'sample-patient-id'
+                ? 'bg-blue-50/80 border-l-4 border-blue-600'
+                : 'hover:bg-slate-100/70'
+            }`}
+          >
+            <div>
+              <div className="flex items-center space-x-2">
+                <span className="font-bold text-xs text-slate-900">Juan Pérez</span>
+                <span className="text-[11px] text-slate-500">(34 años)</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">
+                  Demo
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                Procedimiento: Extracción de Tercer Molar (Cirugía)
+              </p>
+            </div>
+            <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+              Exámenes Pendientes
+            </span>
+          </button>
+
+          {filteredPatients.map((p) => {
+            const isSelected = selectedPatientId === p.id;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => handleSelectPatient(p.id)}
+                className={`w-full p-3 text-left transition flex items-center justify-between gap-3 ${
+                  isSelected
+                    ? 'bg-blue-50/80 border-l-4 border-blue-600'
+                    : 'hover:bg-slate-100/70'
+                }`}
+              >
+                <div className="space-y-0.5">
+                  <div className="flex items-center space-x-2">
+                    <span className="font-bold text-xs text-slate-900">{p.nombre}</span>
+                    <span className="text-[11px] text-slate-500">({p.edad} años)</span>
+                    {p.evidencia_archivo_nombre && (
+                      <span className="inline-flex items-center text-[10px] font-medium text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-200">
+                        <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                        </svg>
+                        Estudio adjunto
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-500">
+                    Tel: {p.telefono}
+                  </p>
+                </div>
+                <div>
+                  {p.examenes_sangre_validados ? (
+                    <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                      ● Luz Verde Médica
+                    </span>
+                  ) : (
+                    <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                      ○ Exámenes Pendientes
+                    </span>
+                  )}
+                </div>
+              </button>
+            );
+          })}
+
+          {filteredPatients.length === 0 && (
+            <div className="p-6 text-center text-xs text-slate-500">
+              No se encontraron pacientes que coincidan con los filtros aplicados.
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Expediente Clínico Pre-Quirúrgico */}
       <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
           <div>
@@ -238,7 +492,6 @@ export const BloodExamCheck: React.FC<BloodExamCheckProps> = ({
           </div>
         </div>
 
-        {/* Ficha de Datos del Paciente */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
           <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100">
             <span className="text-xs text-slate-500 block mb-0.5">Paciente</span>
@@ -256,7 +509,6 @@ export const BloodExamCheck: React.FC<BloodExamCheckProps> = ({
           </div>
         </div>
 
-        {/* Panel de Estado y Dictamen Quirúrgico */}
         <div
           className={`p-5 rounded-xl border transition-all ${
             isValidated
@@ -267,7 +519,11 @@ export const BloodExamCheck: React.FC<BloodExamCheckProps> = ({
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center space-x-2">
-                <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${isValidated ? 'bg-emerald-600 text-white' : 'bg-amber-500 text-white'}`}>
+                <div
+                  className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
+                    isValidated ? 'bg-emerald-600 text-white' : 'bg-amber-500 text-white'
+                  }`}
+                >
                   {isValidated ? (
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
@@ -286,34 +542,133 @@ export const BloodExamCheck: React.FC<BloodExamCheckProps> = ({
               </div>
               <p className="text-xs leading-relaxed max-w-xl text-slate-700">
                 {isValidated
-                  ? 'El paciente cuenta con parámetros de coagulación y hemograma aprobados. El odontólogo puede proceder con la extracción de forma segura.'
-                  : 'Extracción no permitida según la regla de negocio de la clínica. Debe corroborar los exámenes de sangre antes de intervenir.'}
+                  ? 'El paciente cuenta con respaldo de evidencia hematológica aprobada. El odontólogo puede proceder con la extracción de forma segura.'
+                  : 'Extracción no permitida según la regla de negocio. Para habilitar la cirugía, debes cargar el estudio hematológico escaneado.'}
               </p>
             </div>
 
             <div className="shrink-0 flex items-center space-x-3">
-              <button
-                onClick={handleToggle}
-                disabled={loading}
-                className={`px-4 py-2.5 text-xs font-bold rounded-lg shadow-xs hover:shadow transition text-white flex items-center space-x-2 disabled:opacity-50 ${
-                  isValidated
-                    ? 'bg-rose-600 hover:bg-rose-700'
-                    : 'bg-emerald-600 hover:bg-emerald-700'
-                }`}
-              >
-                <span>
-                  {loading
-                    ? 'Guardando...'
-                    : isValidated
-                    ? 'Revocar Validación'
-                    : 'Validar Exámenes'}
-                </span>
-              </button>
+              {isValidated && (
+                <button
+                  type="button"
+                  onClick={() => handleSaveEvidence(false)}
+                  disabled={loading}
+                  className="px-4 py-2 text-xs font-bold rounded-lg transition bg-rose-600 hover:bg-rose-700 text-white disabled:opacity-50 shadow-xs"
+                >
+                  Revocar Luz Verde
+                </button>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Checklist de Parámetros Hematológicos */}
+        <div className="p-5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
+              <h4 className="text-sm font-bold text-slate-800">
+                Subir Evidencia de Estudios Escaneados (Hemograma y Coagulación)
+              </h4>
+            </div>
+            <span className="text-[11px] font-semibold text-slate-400">
+              PDF, JPG, PNG (Fácil de subir)
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="border-2 border-dashed border-slate-300 rounded-xl p-5 text-center bg-white hover:bg-slate-50/80 transition flex flex-col items-center justify-center space-y-2">
+              <input
+                type="file"
+                id="file-evidence-input"
+                accept="application/pdf,image/*"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+              <label
+                htmlFor="file-evidence-input"
+                className="cursor-pointer inline-flex items-center space-x-2 px-4 py-2 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-semibold text-xs transition border border-indigo-200"
+              >
+                <svg className="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                <span>Seleccionar o Escanear Estudio</span>
+              </label>
+              <p className="text-[11px] text-slate-500">
+                Arrastra aquí el hemograma escaneado o haz clic para examinar
+              </p>
+
+              {uploadedFileName && (
+                <div className="w-full mt-2 p-2.5 rounded-lg bg-indigo-50/70 border border-indigo-200 flex items-center justify-between text-xs">
+                  <div className="flex items-center space-x-2 overflow-hidden">
+                    <svg className="w-4 h-4 text-indigo-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span className="font-semibold text-indigo-950 truncate max-w-xs">
+                      {uploadedFileName}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2 shrink-0">
+                    {uploadedFileUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setShowPreviewModal(true)}
+                        className="text-[11px] font-bold text-indigo-700 hover:underline"
+                      >
+                        Ver
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUploadedFileName('');
+                        setUploadedFileUrl('');
+                      }}
+                      className="text-slate-400 hover:text-rose-600 transition"
+                      title="Quitar archivo"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="bg-white p-4 rounded-xl border border-slate-200 space-y-2">
+              <label className="block text-xs font-bold text-slate-700">
+                Parámetros Hematológicos y Observaciones Clínicas
+              </label>
+              <textarea
+                rows={3}
+                value={parametrosTexto}
+                onChange={(e) => setParametrosTexto(e.target.value)}
+                placeholder="Ej: Plaquetas: 250,000/µL, INR: 1.1, TP: 12 seg. Paciente apto para procedimiento de extracción sin riesgo de sangrado."
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition resize-none"
+              />
+              <p className="text-[10px] text-slate-400">
+                Registra los valores clínicos del estudio para el expediente permanente.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-2">
+            <button
+              type="button"
+              onClick={() => handleSaveEvidence(true)}
+              disabled={loading}
+              className="px-5 py-2.5 rounded-lg font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition flex items-center space-x-2 disabled:opacity-50"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <span>{loading ? 'Guardando Evidencia...' : 'Subir Evidencia y Otorgar Luz Verde'}</span>
+            </button>
+          </div>
+        </div>
+
         <div className="space-y-3 pt-2 border-t border-slate-100">
           <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-600">
             Parámetros Hematológicos Pre-Quirúrgicos Requeridos
@@ -351,6 +706,49 @@ export const BloodExamCheck: React.FC<BloodExamCheckProps> = ({
           </div>
         </div>
       </div>
+
+      {showPreviewModal && uploadedFileUrl && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-xl">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h4 className="text-sm font-bold text-slate-900 truncate">
+                Vista Previa: {uploadedFileName}
+              </h4>
+              <button
+                type="button"
+                onClick={() => setShowPreviewModal(false)}
+                className="text-slate-400 hover:text-slate-600 transition"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="max-h-[60vh] overflow-auto rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center p-2">
+              {uploadedFileUrl.startsWith('data:image') ? (
+                <img src={uploadedFileUrl} alt="Estudio escaneado" className="max-h-[55vh] object-contain rounded" />
+              ) : (
+                <iframe
+                  src={uploadedFileUrl}
+                  title="Documento Escaneado"
+                  className="w-full h-96 rounded"
+                />
+              )}
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowPreviewModal(false)}
+                className="px-4 py-2 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
+              >
+                Cerrar Vista Previa
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
