@@ -121,6 +121,7 @@ describe('QA Unit Tests: PatientService (HU-02 y HU-07)', () => {
         examenes_sangre_validados: true,
       },
       orderBy: { nombre: 'asc' },
+      include: { antecedente_medico: true },
     });
   });
 
@@ -132,6 +133,7 @@ describe('QA Unit Tests: PatientService (HU-02 y HU-07)', () => {
         examenes_sangre_validados: false,
       },
       orderBy: { nombre: 'desc' },
+      include: { antecedente_medico: true },
     });
   });
 
@@ -148,6 +150,52 @@ describe('QA Unit Tests: PatientService (HU-02 y HU-07)', () => {
     expect(res?.nombre).toBe('Carlos');
     expect(mockPrisma.patient.findUnique).toHaveBeenCalledWith({
       where: { id: 'uuid-1' },
+      include: { antecedente_medico: true },
     });
+  });
+
+  it('HU-03: debe calcular correctamente el flag tieneAntecedentesCriticos', async () => {
+    mockPrisma.patient.findMany.mockResolvedValue([
+      {
+        id: '1',
+        nombre: 'Paciente Crítico',
+        antecedente_medico: {
+          tiene_diabetes: true,
+          tipo_diabetes: 'TIPO_2',
+          alergias: ['Penicilina'],
+          tiene_hipertension: false,
+          tiene_cardiopatia: false,
+          toma_anticoagulantes: false,
+          esta_embarazada: false,
+        },
+      },
+      {
+        id: '2',
+        nombre: 'Paciente Sin Antecedentes',
+        antecedente_medico: null,
+      },
+      {
+        id: '3',
+        nombre: 'Paciente Sin Críticos',
+        antecedente_medico: {
+          tiene_diabetes: false,
+          tipo_diabetes: null,
+          alergias: [],
+          tiene_hipertension: false,
+          tiene_cardiopatia: false,
+          toma_anticoagulantes: false,
+          esta_embarazada: false,
+        },
+      },
+    ]);
+
+    const res = await service.getAllPatients();
+    expect(res).toHaveLength(3);
+    expect(res[0].tieneAntecedentesCriticos).toBe(true);
+    expect(res[0].alertas_criticas).toEqual(['Alergia: Penicilina', 'Diabetes tipo 2']);
+    expect(res[1].tieneAntecedentesCriticos).toBe(false);
+    expect(res[1].tiene_antecedentes).toBe(false);
+    expect(res[2].tieneAntecedentesCriticos).toBe(false);
+    expect(res[2].tiene_antecedentes).toBe(true);
   });
 });
