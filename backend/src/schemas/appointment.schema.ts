@@ -16,4 +16,13 @@ export const getAppointmentsQuerySchema = z.object({
     .optional(),
 });
 
+export const createAppointmentSchema = z.object({
+  patient_id: z.string().uuid('El ID del paciente debe ser un UUID válido'),
+  motivo: z.string().min(3, 'El motivo de la cita debe tener al menos 3 caracteres'),
+  fecha_inicio: z.string().datetime({ message: 'La fecha de inicio debe tener formato ISO 8601' }),
+  fecha_fin: z.string().datetime({ message: 'La fecha de fin debe tener formato ISO 8601' }),
+  estado: z.enum(['PROGRAMADA', 'ATENDIDA', 'CANCELADA']).optional().default('PROGRAMADA'),
+});
+
 export type GetAppointmentsQuery = z.infer<typeof getAppointmentsQuerySchema>;
+export type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
