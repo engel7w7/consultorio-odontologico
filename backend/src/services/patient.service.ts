@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { CreatePatientInput } from '../schemas/patient.schema.js';
+import { getAlertasCriticas } from './medical-history.service.js';
 
 export interface PatientQueryOptions {
   search?: string;
@@ -46,9 +47,27 @@ export class PatientService {
       ? { nombre: 'desc' }
       : { created_at: 'desc' };
 
-    return await this.prisma.patient.findMany({
+    const patients = await this.prisma.patient.findMany({
       where,
       orderBy,
+      include: {
+        antecedente_medico: true,
+      },
+    });
+
+    return patients.map((p) => {
+      const alertas = p.antecedente_medico
+        ? getAlertasCriticas(p.antecedente_medico)
+        : [];
+      const tieneCriticos = alertas.length > 0;
+
+      return {
+        ...p,
+        tieneAntecedentesCriticos: tieneCriticos,
+        tiene_antecedentes_criticos: tieneCriticos,
+        tiene_antecedentes: Boolean(p.antecedente_medico),
+        alertas_criticas: alertas,
+      };
     });
   }
 
@@ -87,8 +106,26 @@ export class PatientService {
   }
 
   async getPatientById(patientId: string) {
-    return await this.prisma.patient.findUnique({
+    const patient = await this.prisma.patient.findUnique({
       where: { id: patientId },
+      include: {
+        antecedente_medico: true,
+      },
     });
+
+    if (!patient) return null;
+
+    const alertas = patient.antecedente_medico
+      ? getAlertasCriticas(patient.antecedente_medico)
+      : [];
+    const tieneCriticos = alertas.length > 0;
+
+    return {
+      ...patient,
+      tieneAntecedentesCriticos: tieneCriticos,
+      tiene_antecedentes_criticos: tieneCriticos,
+      tiene_antecedentes: Boolean(patient.antecedente_medico),
+      alertas_criticas: alertas,
+    };
   }
 }

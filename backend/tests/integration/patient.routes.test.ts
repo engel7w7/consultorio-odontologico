@@ -182,4 +182,92 @@ describe('QA Integration Tests - Rutas de Pacientes y Servidor', () => {
     const res = await request(app).get('/api/patients/uuid-no-existente');
     expect(res.status).toBe(404);
   });
+
+  it('GET /api/patients/:id/medical-history/audit responde 200 con el historial de auditoria', async () => {
+    vi.spyOn(prisma.patient, 'findUnique').mockResolvedValue({
+      id: '123e4567-e89b-12d3-a456-426614174000',
+    } as any);
+    vi.spyOn(prisma.medicalHistoryAudit, 'findMany').mockResolvedValue([
+      {
+        id: 'aud-1',
+        patient_id: '123e4567-e89b-12d3-a456-426614174000',
+        campo: 'tiene_diabetes',
+        valor_anterior: 'No',
+        valor_nuevo: 'Sí',
+        motivo: 'Paciente diagnosticado con diabetes tipo 2',
+        usuario_id: 'Dr. Odontólogo',
+        fecha_hora: new Date(),
+      } as any,
+    ]);
+
+    const res = await request(app).get(
+      '/api/patients/123e4567-e89b-12d3-a456-426614174000/medical-history/audit'
+    );
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body[0].campo).toBe('tiene_diabetes');
+    expect(res.body[0].motivo).toContain('diabetes tipo 2');
+  });
+
+  it('PUT /api/patients/:id/medical-history responde 400 si falta el motivo de modificacion', async () => {
+    const res = await request(app)
+      .put('/api/patients/123e4567-e89b-12d3-a456-426614174000/medical-history')
+      .send({
+        tiene_diabetes: false,
+        tiene_hipertension: false,
+        tiene_cardiopatia: false,
+        toma_anticoagulantes: false,
+        esta_embarazada: false,
+        alergias: [],
+        // Sin motivo
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toContain('motivo');
+  });
+
+  it('PUT /api/patients/:id/medical-history guarda y responde 200 con motivo valido', async () => {
+    vi.spyOn(prisma.patient, 'findUnique').mockResolvedValue({
+      id: '123e4567-e89b-12d3-a456-426614174000',
+    } as any);
+    vi.spyOn(prisma.antecedenteMedico, 'findUnique').mockResolvedValue(null);
+    vi.spyOn(prisma, '$transaction').mockImplementation(async (cb: any) => {
+      return cb({
+        antecedenteMedico: {
+          upsert: vi.fn().mockResolvedValue({
+            id: 'ant-1',
+            patient_id: '123e4567-e89b-12d3-a456-426614174000',
+            tiene_diabetes: false,
+            tipo_diabetes: null,
+            tiene_hipertension: true,
+            tiene_cardiopatia: false,
+            toma_anticoagulantes: false,
+            esta_embarazada: false,
+            alergias: ['Penicilina'],
+            medicacion_actual: null,
+            otras_condiciones: null,
+          }),
+        },
+        medicalHistoryAudit: {
+          createMany: vi.fn().mockResolvedValue({ count: 2 }),
+        },
+      });
+    });
+
+    const res = await request(app)
+      .put('/api/patients/123e4567-e89b-12d3-a456-426614174000/medical-history')
+      .send({
+        tiene_diabetes: false,
+        tiene_hipertension: true,
+        tiene_cardiopatia: false,
+        toma_anticoagulantes: false,
+        esta_embarazada: false,
+        alergias: ['Penicilina'],
+        motivo: 'Registro de antecedentes iniciales en consulta',
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.tiene_hipertension).toBe(true);
+    expect(res.body.alertas).toEqual(['Alergia: Penicilina', 'Hipertensión']);
+  });
 });
