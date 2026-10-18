@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { AppointmentController } from '../../src/controllers/appointment.controller';
+import { AppointmentController } from '../../src/controllers/appointment.controller.js';
 import { Request, Response } from 'express';
 import { z } from 'zod';
 

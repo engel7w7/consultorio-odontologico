@@ -11,8 +11,8 @@ describe('QA Unit Tests: AuthController (HU-01)', () => {
   };
   let mockReq: Partial<Request>;
   let mockRes: Partial<Response>;
-  let statusMock: ReturnType<typeof vi.fn>;
-  let jsonMock: ReturnType<typeof vi.fn>;
+  let statusMock: any;
+  let jsonMock: any;
 
   beforeEach(() => {
     vi.clearAllMocks();

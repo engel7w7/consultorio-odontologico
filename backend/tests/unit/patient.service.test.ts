@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { PatientService } from '../../src/services/patient.service';
+import { PatientService } from '../../src/services/patient.service.js';
 
 const mockPrisma = {
   patient: {

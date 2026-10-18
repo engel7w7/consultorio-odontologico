@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { PatientController } from '../../src/controllers/patient.controller';
+import { PatientController } from '../../src/controllers/patient.controller.js';
 import { Request, Response } from 'express';
 
 describe('QA Unit Tests: PatientController (Branch Coverage)', () => {

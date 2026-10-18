@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import request from 'supertest';
-import app from '../../src/server';
-import { prisma } from '../../src/config/prisma';
+import app from '../../src/server.js';
+import { prisma } from '../../src/config/prisma.js';
 
 describe('QA Integration Tests - Rutas de Citas y Agenda (HU-04)', () => {
   beforeEach(() => {

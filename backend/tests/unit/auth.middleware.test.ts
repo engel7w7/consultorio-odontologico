@@ -7,8 +7,8 @@ describe('QA Unit Tests: Auth Middleware (requireAuth)', () => {
   let mockReq: Partial<AuthenticatedRequest>;
   let mockRes: Partial<Response>;
   let nextMock: NextFunction;
-  let statusMock: ReturnType<typeof vi.fn>;
-  let jsonMock: ReturnType<typeof vi.fn>;
+  let statusMock: any;
+  let jsonMock: any;
   const originalEnv = process.env.NODE_ENV;
 
   beforeEach(() => {
