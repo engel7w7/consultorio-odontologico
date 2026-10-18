@@ -39,22 +39,34 @@ export class AppointmentController {
         });
       }
 
-      if (error instanceof Error) {
-        if (error.message === 'EXTRACTION_BLOOD_EXAMS_REQUIRED') {
-          return res.status(422).json({
-            error:
-              'ALERTA ROJA BLOQUEANTE: No se puede agendar una extracción o procedimiento quirúrgico en un paciente sin exámenes de sangre validados.',
-            code: 'EXTRACTION_BLOOD_EXAMS_REQUIRED',
-          });
-        }
-        if (error.message === 'PATIENT_NOT_FOUND') {
-          return res.status(404).json({ error: 'Paciente no encontrado' });
-        }
-        if (error.message === 'START_TIME_MUST_BE_BEFORE_END_TIME') {
-          return res
-            .status(400)
-            .json({ error: 'La hora de inicio debe ser anterior a la hora de fin' });
-        }
+      const errCode = (error as any)?.code || (error instanceof Error ? error.message : '');
+
+      if (
+        errCode === 'EXTRACTION_BLOOD_EXAMS_REQUIRED' ||
+        (error instanceof Error && error.message.includes('ALERTA ROJA BLOQUEANTE'))
+      ) {
+        return res.status(422).json({
+          error:
+            'ALERTA ROJA BLOQUEANTE: No se puede agendar una extracción o procedimiento quirúrgico en un paciente sin exámenes de sangre validados.',
+          code: 'EXTRACTION_BLOOD_EXAMS_REQUIRED',
+        });
+      }
+
+      if (
+        errCode === 'PATIENT_NOT_FOUND' ||
+        (error instanceof Error && error.message === 'Paciente no encontrado')
+      ) {
+        return res.status(404).json({ error: 'Paciente no encontrado' });
+      }
+
+      if (
+        errCode === 'START_TIME_MUST_BE_BEFORE_END_TIME' ||
+        (error instanceof Error &&
+          error.message === 'La hora de inicio debe ser anterior a la hora de fin')
+      ) {
+        return res
+          .status(400)
+          .json({ error: 'La hora de inicio debe ser anterior a la hora de fin' });
       }
 
       console.error('Error al agendar cita:', error);

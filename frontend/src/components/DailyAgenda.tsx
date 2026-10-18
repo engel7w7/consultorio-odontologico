@@ -214,7 +214,7 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
   }, [patients, selectedPatientId]);
 
   const isExtractionProcedure = useMemo(() => {
-    return /extracc|cirug|molar|quirurg/i.test(motivo);
+    return /extracc|exodoncia|cirug|quir[uú]rg|muela|molar/i.test(motivo);
   }, [motivo]);
 
   const isSafetyBlocked = useMemo(() => {
@@ -590,6 +590,13 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
                     className="text-[11px] bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 px-2 py-0.5 rounded transition"
                   >
                     Extracción molar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMotivo('Exodoncia simple')}
+                    className="text-[11px] bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 px-2 py-0.5 rounded transition"
+                  >
+                    Exodoncia
                   </button>
                   <button
                     type="button"
