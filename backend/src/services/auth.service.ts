@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { hashPassword, verifyPassword, generateToken, verifyToken } from '../utils/auth.utils.js';
+import { verifyPassword, generateToken, verifyToken } from '../utils/auth.utils.js';
 import { LoginInput } from '../schemas/auth.schema.js';
 
 export class AuthService {
