@@ -4,6 +4,15 @@ import { CreateAppointmentInput } from '../schemas/appointment.schema.js';
 
 export { getDayRangeUTC };
 
+export class AppointmentError extends Error {
+  code: string;
+  constructor(message: string, code: string) {
+    super(message);
+    this.name = 'AppointmentError';
+    this.code = code;
+  }
+}
+
 export class AppointmentService {
   constructor(private prisma: PrismaClient) {}
 
@@ -37,25 +46,23 @@ export class AppointmentService {
     });
 
     if (!patient) {
-      const err = new Error('Paciente no encontrado');
-      (err as any).code = 'PATIENT_NOT_FOUND';
-      throw err;
+      throw new AppointmentError('Paciente no encontrado', 'PATIENT_NOT_FOUND');
     }
 
     if (new Date(data.fecha_inicio) >= new Date(data.fecha_fin)) {
-      const err = new Error('La hora de inicio debe ser anterior a la hora de fin');
-      (err as any).code = 'START_TIME_MUST_BE_BEFORE_END_TIME';
-      throw err;
+      throw new AppointmentError(
+        'La hora de inicio debe ser anterior a la hora de fin',
+        'START_TIME_MUST_BE_BEFORE_END_TIME'
+      );
     }
 
     const isExtraction = /extracc|exodoncia|cirug|quir[uú]rg|muela|molar/i.test(data.motivo);
 
     if (isExtraction && !patient.examenes_sangre_validados) {
-      const error = new Error(
-        'ALERTA ROJA BLOQUEANTE: No se puede agendar una extracción dental para un paciente sin exámenes de sangre validados (Luz Verde Médica requerida).'
+      throw new AppointmentError(
+        'ALERTA ROJA BLOQUEANTE: No se puede agendar una extracción dental para un paciente sin exámenes de sangre validados (Luz Verde Médica requerida).',
+        'EXTRACTION_BLOOD_EXAMS_REQUIRED'
       );
-      (error as any).code = 'EXTRACTION_BLOOD_EXAMS_REQUIRED';
-      throw error;
     }
 
     return await this.prisma.appointment.create({
