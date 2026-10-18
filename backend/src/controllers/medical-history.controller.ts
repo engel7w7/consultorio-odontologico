@@ -33,6 +33,30 @@ export class MedicalHistoryController {
     }
   };
 
+  getAuditHistory = async (req: Request, res: Response) => {
+    try {
+      const { id } = patientIdParamSchema.parse(req.params);
+      const audit = await this.service.getAuditHistory(id);
+      return res.status(200).json(audit);
+    } catch (error: unknown) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          error: error.issues[0]?.message || 'Error de validación en parámetros',
+          issues: error.issues,
+        });
+      }
+
+      if (error instanceof Error && error.message === 'Paciente no encontrado') {
+        return res.status(404).json({ error: 'Paciente no encontrado' });
+      }
+
+      console.error('Error al consultar auditoría de antecedentes médicos:', error);
+      return res
+        .status(500)
+        .json({ error: 'Error interno al consultar la auditoría de antecedentes médicos' });
+    }
+  };
+
   upsertMedicalHistory = async (req: Request, res: Response) => {
     try {
       const { id } = patientIdParamSchema.parse(req.params);
@@ -47,8 +71,13 @@ export class MedicalHistoryController {
         });
       }
 
-      if (error instanceof Error && error.message === 'Paciente no encontrado') {
-        return res.status(404).json({ error: 'Paciente no encontrado' });
+      if (error instanceof Error) {
+        if (error.message === 'Paciente no encontrado') {
+          return res.status(404).json({ error: 'Paciente no encontrado' });
+        }
+        if (error.message.includes('motivo de la modificación')) {
+          return res.status(400).json({ error: error.message });
+        }
       }
 
       console.error('Error al registrar antecedentes médicos:', error);
