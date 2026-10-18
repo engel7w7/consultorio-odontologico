@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import request from 'supertest';
-import app from '../../src/server';
-import { prisma } from '../../src/config/prisma';
+import app from '../../src/server.js';
+import { prisma } from '../../src/config/prisma.js';
 
 describe('QA Integration Tests - Rutas de Pacientes y Servidor', () => {
   beforeEach(() => {
@@ -35,7 +35,7 @@ describe('QA Integration Tests - Rutas de Pacientes y Servidor', () => {
       vi.resetModules();
       process.env.NODE_ENV = 'production';
       process.env.PORT = '10000';
-      const prodModule = await import('../../src/server');
+      const prodModule = await import('../../src/server.js');
       expect(prodModule.default).toBeDefined();
     } finally {
       process.env.NODE_ENV = originalEnv;

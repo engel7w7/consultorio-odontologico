@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { getDayRangeUTC, getTodayDateStringLaPaz } from '../../src/utils/date.utils';
+import { getDayRangeUTC, getTodayDateStringLaPaz } from '../../src/utils/date.utils.js';
 
 describe('QA Unit Tests: date.utils (HU-04)', () => {
   afterEach(() => {
