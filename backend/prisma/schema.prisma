@@ -93,3 +93,16 @@ model MedicalHistoryAudit {
   @@map("medical_history_audits")
 }
 
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique @db.VarChar(150)
+  password     String   @db.VarChar(255)
+  nombre       String   @db.VarChar(150)
+  especialidad String   @default("Odontología General") @db.VarChar(100)
+  rol          String   @default("ODONTOLOGO") @db.VarChar(50)
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  @@map("users")
+}
+

@@ -39,7 +39,12 @@ export class AppointmentController {
         });
       }
 
-      const errCode = (error as any)?.code || (error instanceof Error ? error.message : '');
+      const errCode =
+        error && typeof error === 'object' && 'code' in error
+          ? String((error as { code: unknown }).code)
+          : error instanceof Error
+            ? error.message
+            : '';
 
       if (
         errCode === 'EXTRACTION_BLOOD_EXAMS_REQUIRED' ||

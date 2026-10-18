@@ -29,5 +29,5 @@ export const createAppointmentSchema = z
     path: ['fecha_fin'],
   });
 
-export type GetAppointmentsQuery = z.infer<typeof getAppointmentsQuerySchema>;
-export type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
+export type GetAppointmentsQuery = z.input<typeof getAppointmentsQuerySchema>;
+export type CreateAppointmentInput = z.input<typeof createAppointmentSchema>;

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getAppointmentsQuerySchema } from '../../src/schemas/appointment.schema';
+import { getAppointmentsQuerySchema } from '../../src/schemas/appointment.schema.js';
 
 describe('QA Unit Tests: appointment.schema (HU-04)', () => {
   it('debe validar exitosamente cuando se envía una fecha válida', () => {

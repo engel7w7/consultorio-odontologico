@@ -1,19 +1,115 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PatientRegistrationForm } from './components/PatientRegistrationForm';
 import { BloodExamCheck } from './components/BloodExamCheck';
 import { DailyAgenda } from './components/DailyAgenda';
 import { MedicalHistory } from './components/MedicalHistory';
+import { DoctorLogin } from './components/DoctorLogin';
+import type { AuthUser } from './types/auth';
 
 type TabType = 'registro' | 'validacion' | 'agenda' | 'antecedentes';
 
+if (typeof window !== 'undefined' && !(window as any).__fetchAuthIntercepted) {
+  const originalFetch = window.fetch;
+  window.fetch = async (input, init = {}) => {
+    const token = localStorage.getItem('dental_auth_token');
+    const isApiRequest =
+      (typeof input === 'string' && input.includes('/api/')) ||
+      (input instanceof URL && input.pathname.includes('/api/'));
+
+    if (token && isApiRequest) {
+      const headers = new Headers(init.headers || {});
+      if (!headers.has('Authorization')) {
+        headers.set('Authorization', `Bearer ${token}`);
+      }
+      return originalFetch(input, { ...init, headers });
+    }
+    return originalFetch(input, init);
+  };
+  (window as any).__fetchAuthIntercepted = true;
+}
+
 function App() {
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => {
+    try {
+      const stored = localStorage.getItem('dental_auth_user');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+
   const [activeTab, setActiveTab] = useState<TabType>('registro');
   const [selectedPatientForValidation, setSelectedPatientForValidation] = useState<string>('sample-patient-id');
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    localStorage.removeItem('dental_auth_user');
+    localStorage.removeItem('dental_auth_token');
+  };
+
+  useEffect(() => {
+    const token = localStorage.getItem('dental_auth_token');
+    if (token) {
+      const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, '');
+      fetch(`${apiUrl}/api/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => {
+          if (!res.ok) {
+            handleLogout();
+          }
+        })
+        .catch(() => {
+          // Servidor no disponible, se preserva sesión local
+        });
+    }
+  }, []);
+
+  const handleLoginSuccess = (user: AuthUser, token: string) => {
+    setCurrentUser(user);
+    localStorage.setItem('dental_auth_user', JSON.stringify(user));
+    localStorage.setItem('dental_auth_token', token);
+  };
 
   const handleSelectForValidation = (patientId: string) => {
     setSelectedPatientForValidation(patientId);
     setActiveTab('validacion');
   };
+
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-slate-100 flex flex-col justify-between">
+        <header className="bg-white border-b border-slate-200 py-3.5 px-6 shadow-xs flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg">
+              🦷
+            </div>
+            <div>
+              <h1 className="text-base font-bold text-slate-900 leading-tight">
+                Centro Odontológico Especializado
+              </h1>
+              <p className="text-[11px] text-slate-500 font-medium">
+                Control Clínico y Seguridad del Paciente
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] bg-slate-100 text-slate-600 border border-slate-200 font-medium">
+              🔒 Acceso Protegido
+            </span>
+          </div>
+        </header>
+
+        <main className="flex-1">
+          <DoctorLogin onLoginSuccess={handleLoginSuccess} />
+        </main>
+
+        <footer className="py-4 text-center text-xs text-slate-400 border-t border-slate-200 bg-white">
+          Sistema de Gestión Odontológica &copy; 2026 · Acceso Restringido a Profesionales de la Salud
+        </footer>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800">
@@ -36,13 +132,28 @@ function App() {
             </div>
           </div>
 
+          {/* Perfil del Odontólogo Autenticado y Salir */}
           <div className="flex items-center space-x-3 self-end sm:self-auto text-xs">
-            <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-medium">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>
-              Servidor Conectado
-            </span>
-            <span className="text-slate-300">|</span>
-            <span className="text-slate-600 font-medium">Consultorio Dental</span>
+            <div className="text-right hidden sm:block">
+              <div className="font-bold text-slate-800">{currentUser.nombre}</div>
+              <div className="text-[11px] text-slate-500">{currentUser.especialidad}</div>
+            </div>
+
+            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center border border-blue-200">
+              Dr
+            </div>
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition font-medium focus:outline-none"
+              title="Cerrar sesión médica"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              <span>Salir</span>
+            </button>
           </div>
         </div>
 
