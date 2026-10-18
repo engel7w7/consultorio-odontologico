@@ -78,4 +78,128 @@ describe('QA Unit Tests: AppointmentService (HU-04)', () => {
       },
     });
   });
+
+  describe('createAppointment (HU-08)', () => {
+    it('crea exitosamente una cita regular cuando el motivo no es de extracción', async () => {
+      mockPrisma.patient = {
+        findUnique: vi.fn().mockResolvedValue({
+          id: 'p-1',
+          nombre: 'Juan Pérez',
+          examenes_sangre_validados: false,
+        }),
+      };
+      mockPrisma.appointment.create = vi.fn().mockResolvedValue({
+        id: 'appt-1',
+        patient_id: 'p-1',
+        motivo: 'Limpieza y profilaxis',
+        fecha_inicio: new Date('2026-10-15T14:00:00Z'),
+        fecha_fin: new Date('2026-10-15T14:30:00Z'),
+        estado: 'PROGRAMADA',
+      });
+
+      const res = await service.createAppointment({
+        patient_id: 'p-1',
+        motivo: 'Limpieza y profilaxis',
+        fecha_inicio: '2026-10-15T14:00:00Z',
+        fecha_fin: '2026-10-15T14:30:00Z',
+      });
+
+      expect(res.id).toBe('appt-1');
+      expect(mockPrisma.appointment.create).toHaveBeenCalledOnce();
+    });
+
+    it('crea exitosamente una extracción si el paciente tiene exámenes de sangre validados', async () => {
+      mockPrisma.patient = {
+        findUnique: vi.fn().mockResolvedValue({
+          id: 'p-1',
+          nombre: 'Juan Pérez',
+          examenes_sangre_validados: true,
+        }),
+      };
+      mockPrisma.appointment.create = vi.fn().mockResolvedValue({
+        id: 'appt-2',
+        patient_id: 'p-1',
+        motivo: 'Extracción de tercer molar',
+        fecha_inicio: new Date('2026-10-15T15:00:00Z'),
+        fecha_fin: new Date('2026-10-15T16:00:00Z'),
+        estado: 'PROGRAMADA',
+      });
+
+      const res = await service.createAppointment({
+        patient_id: 'p-1',
+        motivo: 'Extracción de tercer molar',
+        fecha_inicio: '2026-10-15T15:00:00Z',
+        fecha_fin: '2026-10-15T16:00:00Z',
+      });
+
+      expect(res.id).toBe('appt-2');
+      expect(mockPrisma.appointment.create).toHaveBeenCalledOnce();
+    });
+
+    it('lanza PATIENT_NOT_FOUND si el paciente no existe', async () => {
+      mockPrisma.patient = {
+        findUnique: vi.fn().mockResolvedValue(null),
+      };
+
+      await expect(
+        service.createAppointment({
+          patient_id: 'no-existe',
+          motivo: 'Consulta general',
+          fecha_inicio: '2026-10-15T15:00:00Z',
+          fecha_fin: '2026-10-15T16:00:00Z',
+        })
+      ).rejects.toMatchObject({
+        code: 'PATIENT_NOT_FOUND',
+      });
+    });
+
+    it('lanza START_TIME_MUST_BE_BEFORE_END_TIME si fecha_inicio >= fecha_fin', async () => {
+      mockPrisma.patient = {
+        findUnique: vi.fn().mockResolvedValue({
+          id: 'p-1',
+          nombre: 'Juan Pérez',
+          examenes_sangre_validados: true,
+        }),
+      };
+
+      await expect(
+        service.createAppointment({
+          patient_id: 'p-1',
+          motivo: 'Consulta',
+          fecha_inicio: '2026-10-15T16:00:00Z',
+          fecha_fin: '2026-10-15T15:00:00Z',
+        })
+      ).rejects.toMatchObject({
+        code: 'START_TIME_MUST_BE_BEFORE_END_TIME',
+      });
+    });
+
+    it.each([
+      'Extracción de pieza 18',
+      'Exodoncia simple',
+      'Cirugía periodontal',
+      'Procedimiento quirúrgico complejo',
+      'Extraccion de muela de juicio',
+      'Cirugia de molar incluido',
+    ])('lanza EXTRACTION_BLOOD_EXAMS_REQUIRED para procedimiento "%s" si no tiene exámenes validados', async (motivo) => {
+      mockPrisma.patient = {
+        findUnique: vi.fn().mockResolvedValue({
+          id: 'p-1',
+          nombre: 'Juan Pérez',
+          examenes_sangre_validados: false,
+        }),
+      };
+
+      await expect(
+        service.createAppointment({
+          patient_id: 'p-1',
+          motivo,
+          fecha_inicio: '2026-10-15T15:00:00Z',
+          fecha_fin: '2026-10-15T16:00:00Z',
+        })
+      ).rejects.toMatchObject({
+        code: 'EXTRACTION_BLOOD_EXAMS_REQUIRED',
+      });
+    });
+  });
 });

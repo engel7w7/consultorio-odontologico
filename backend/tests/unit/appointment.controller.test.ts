@@ -144,4 +144,142 @@ describe('QA Unit Tests: AppointmentController (HU-04)', () => {
 
     consoleSpy.mockRestore();
   });
+
+  describe('createAppointment (HU-08)', () => {
+    it('responde 201 y la cita creada con datos válidos', async () => {
+      mockService.createAppointment = vi.fn().mockResolvedValue({
+        id: 'appt-100',
+        patient_id: '123e4567-e89b-12d3-a456-426614174000',
+        motivo: 'Control de rutina',
+        fecha_inicio: '2026-10-15T10:00:00.000Z',
+        fecha_fin: '2026-10-15T11:00:00.000Z',
+        estado: 'PROGRAMADA',
+      });
+
+      mockReq = {
+        body: {
+          patient_id: '123e4567-e89b-12d3-a456-426614174000',
+          motivo: 'Control de rutina',
+          fecha_inicio: '2026-10-15T10:00:00.000Z',
+          fecha_fin: '2026-10-15T11:00:00.000Z',
+        },
+      };
+
+      await controller.createAppointment(mockReq as Request, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(201);
+      expect(jsonMock).toHaveBeenCalledWith(expect.objectContaining({ id: 'appt-100' }));
+    });
+
+    it('responde 400 cuando el cuerpo no cumple el esquema de validación', async () => {
+      mockReq = {
+        body: {
+          patient_id: 'id-invalido',
+          motivo: '',
+          fecha_inicio: 'no-es-fecha',
+          fecha_fin: 'no-es-fecha',
+        },
+      };
+
+      await controller.createAppointment(mockReq as Request, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(400);
+      expect(jsonMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error: expect.any(String),
+          issues: expect.any(Array),
+        })
+      );
+    });
+
+    it('responde 422 cuando el servicio lanza alerta roja bloqueante de extracción sin exámenes', async () => {
+      mockService.createAppointment = vi.fn().mockRejectedValue({
+        code: 'EXTRACTION_BLOOD_EXAMS_REQUIRED',
+        message: 'ALERTA ROJA BLOQUEANTE: No se puede agendar una extracción dental...',
+      });
+
+      mockReq = {
+        body: {
+          patient_id: '123e4567-e89b-12d3-a456-426614174000',
+          motivo: 'Extracción de tercer molar',
+          fecha_inicio: '2026-10-15T10:00:00.000Z',
+          fecha_fin: '2026-10-15T11:00:00.000Z',
+        },
+      };
+
+      await controller.createAppointment(mockReq as Request, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(422);
+      expect(jsonMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'EXTRACTION_BLOOD_EXAMS_REQUIRED',
+          error: expect.stringContaining('ALERTA ROJA BLOQUEANTE'),
+        })
+      );
+    });
+
+    it('responde 404 cuando el paciente no existe', async () => {
+      mockService.createAppointment = vi.fn().mockRejectedValue({
+        code: 'PATIENT_NOT_FOUND',
+        message: 'Paciente no encontrado',
+      });
+
+      mockReq = {
+        body: {
+          patient_id: '123e4567-e89b-12d3-a456-426614174000',
+          motivo: 'Control de rutina',
+          fecha_inicio: '2026-10-15T10:00:00.000Z',
+          fecha_fin: '2026-10-15T11:00:00.000Z',
+        },
+      };
+
+      await controller.createAppointment(mockReq as Request, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(404);
+      expect(jsonMock).toHaveBeenCalledWith({ error: 'Paciente no encontrado' });
+    });
+
+    it('responde 400 cuando fecha_inicio no es anterior a fecha_fin', async () => {
+      mockService.createAppointment = vi.fn().mockRejectedValue({
+        code: 'START_TIME_MUST_BE_BEFORE_END_TIME',
+        message: 'La hora de inicio debe ser anterior a la hora de fin',
+      });
+
+      mockReq = {
+        body: {
+          patient_id: '123e4567-e89b-12d3-a456-426614174000',
+          motivo: 'Control de rutina',
+          fecha_inicio: '2026-10-15T10:00:00.000Z',
+          fecha_fin: '2026-10-15T11:00:00.000Z',
+        },
+      };
+
+      await controller.createAppointment(mockReq as Request, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(400);
+      expect(jsonMock).toHaveBeenCalledWith({
+        error: 'La hora de inicio debe ser anterior a la hora de fin',
+      });
+    });
+
+    it('responde 500 en error interno del servidor al crear cita', async () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      mockService.createAppointment = vi.fn().mockRejectedValue(new Error('Fallo crítico'));
+
+      mockReq = {
+        body: {
+          patient_id: '123e4567-e89b-12d3-a456-426614174000',
+          motivo: 'Control de rutina',
+          fecha_inicio: '2026-10-15T10:00:00.000Z',
+          fecha_fin: '2026-10-15T11:00:00.000Z',
+        },
+      };
+
+      await controller.createAppointment(mockReq as Request, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(500);
+      expect(jsonMock).toHaveBeenCalledWith({ error: 'Error interno al agendar la cita' });
+      consoleSpy.mockRestore();
+    });
+  });
 });
