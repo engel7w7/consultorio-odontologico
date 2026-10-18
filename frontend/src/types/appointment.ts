@@ -16,3 +16,11 @@ export interface Appointment {
   created_at: string;
   updated_at: string;
 }
+
+export interface CreateAppointmentPayload {
+  patient_id: string;
+  motivo: string;
+  fecha_inicio: string;
+  fecha_fin: string;
+  estado?: EstadoCita;
+}

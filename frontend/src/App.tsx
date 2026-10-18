@@ -228,7 +228,7 @@ function App() {
         ) : activeTab === 'validacion' ? (
           <BloodExamCheck patientId={selectedPatientForValidation} />
         ) : activeTab === 'agenda' ? (
-          <DailyAgenda />
+          <DailyAgenda onSelectPatientForValidation={handleSelectForValidation} />
         ) : (
           <MedicalHistory />
         )}
