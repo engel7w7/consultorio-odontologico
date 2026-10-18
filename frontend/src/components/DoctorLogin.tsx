@@ -6,8 +6,8 @@ interface DoctorLoginProps {
 }
 
 export const DoctorLogin: React.FC<DoctorLoginProps> = ({ onLoginSuccess }) => {
-  const [email, setEmail] = useState<string>('doctor@clinica.com');
-  const [password, setPassword] = useState<string>('Doctor123*');
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -39,12 +39,6 @@ export const DoctorLogin: React.FC<DoctorLoginProps> = ({ onLoginSuccess }) => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleFillDemo = () => {
-    setEmail('doctor@clinica.com');
-    setPassword('Doctor123*');
-    setErrorMessage(null);
   };
 
   return (
@@ -153,23 +147,6 @@ export const DoctorLogin: React.FC<DoctorLoginProps> = ({ onLoginSuccess }) => {
               </>
             )}
           </button>
-
-          {/* Tarjeta de credenciales médicas demo */}
-          <div className="pt-2 border-t border-slate-100">
-            <div className="bg-slate-50 rounded-xl p-3 border border-slate-200/80 flex items-center justify-between">
-              <div className="text-[11px] text-slate-500">
-                <p className="font-semibold text-slate-700">Acceso Odontológico Oficial (Demo):</p>
-                <p className="font-mono text-slate-600">doctor@clinica.com · Doctor123*</p>
-              </div>
-              <button
-                type="button"
-                onClick={handleFillDemo}
-                className="text-[11px] font-semibold text-blue-600 hover:text-blue-800 bg-white hover:bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200 transition"
-              >
-                Auto-llenar
-              </button>
-            </div>
-          </div>
         </form>
 
         {/* Pie de seguridad clínica */}

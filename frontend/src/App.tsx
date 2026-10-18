@@ -8,6 +8,26 @@ import type { AuthUser } from './types/auth';
 
 type TabType = 'registro' | 'validacion' | 'agenda' | 'antecedentes';
 
+if (typeof window !== 'undefined' && !(window as any).__fetchAuthIntercepted) {
+  const originalFetch = window.fetch;
+  window.fetch = async (input, init = {}) => {
+    const token = localStorage.getItem('dental_auth_token');
+    const isApiRequest =
+      (typeof input === 'string' && input.includes('/api/')) ||
+      (input instanceof URL && input.pathname.includes('/api/'));
+
+    if (token && isApiRequest) {
+      const headers = new Headers(init.headers || {});
+      if (!headers.has('Authorization')) {
+        headers.set('Authorization', `Bearer ${token}`);
+      }
+      return originalFetch(input, { ...init, headers });
+    }
+    return originalFetch(input, init);
+  };
+  (window as any).__fetchAuthIntercepted = true;
+}
+
 function App() {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => {
     try {

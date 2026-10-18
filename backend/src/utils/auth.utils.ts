@@ -1,3 +1,4 @@
+import bcrypt from 'bcryptjs';
 import crypto from 'node:crypto';
 
 export interface AuthTokenPayload {
@@ -7,28 +8,26 @@ export interface AuthTokenPayload {
   exp?: number;
 }
 
-export function hashPassword(password: string): string {
-  const salt = crypto.randomBytes(16).toString('hex');
-  const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
-  return `${salt}:${hash}`;
+export const BCRYPT_SALT_ROUNDS = 10;
+
+export async function hashPassword(password: string): Promise<string> {
+  return await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
 }
 
-export function verifyPassword(password: string, storedHash: string): boolean {
-  try {
-    const [salt, key] = storedHash.split(':');
-    if (!salt || !key) return false;
-    const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
-    const keyBuf = Buffer.from(key, 'hex');
-    const hashBuf = Buffer.from(hash, 'hex');
-    if (keyBuf.length !== hashBuf.length) return false;
-    return crypto.timingSafeEqual(keyBuf, hashBuf);
-  } catch {
-    return false;
+export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  return await bcrypt.compare(password, hash);
+}
+
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('JWT_SECRET no configurado en variables de entorno');
   }
+  return secret;
 }
 
 export function generateToken(payload: { userId: string; email: string; rol: string }): string {
-  const secret = process.env.JWT_SECRET || 'secret-consultorio-seguro-odontologia-2026';
+  const secret = getJwtSecret();
   const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
   const exp = Date.now() + 24 * 60 * 60 * 1000;
   const body = Buffer.from(JSON.stringify({ ...payload, exp })).toString('base64url');
@@ -41,7 +40,7 @@ export function generateToken(payload: { userId: string; email: string; rol: str
 
 export function verifyToken(token: string): AuthTokenPayload | null {
   try {
-    const secret = process.env.JWT_SECRET || 'secret-consultorio-seguro-odontologia-2026';
+    const secret = getJwtSecret();
     const [header, body, signature] = token.split('.');
     if (!header || !body || !signature) return null;
     const expectedSig = crypto

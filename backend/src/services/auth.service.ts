@@ -5,27 +5,7 @@ import { LoginInput } from '../schemas/auth.schema.js';
 export class AuthService {
   constructor(private prisma: PrismaClient) {}
 
-  private async ensureDefaultDoctorExists() {
-    const existingDoctor = await this.prisma.user.findUnique({
-      where: { email: 'doctor@clinica.com' },
-    });
-
-    if (!existingDoctor) {
-      await this.prisma.user.create({
-        data: {
-          email: 'doctor@clinica.com',
-          password: hashPassword('Doctor123*'),
-          nombre: 'Dr. Roberto Céspedes',
-          especialidad: 'Odontología General & Cirugía Oral',
-          rol: 'ODONTOLOGO',
-        },
-      });
-    }
-  }
-
   async login(data: LoginInput) {
-    await this.ensureDefaultDoctorExists();
-
     const normalizedEmail = data.email.trim().toLowerCase();
     const user = await this.prisma.user.findFirst({
       where: {
@@ -40,7 +20,7 @@ export class AuthService {
       throw new Error('INVALID_CREDENTIALS');
     }
 
-    const isMatch = verifyPassword(data.password, user.password);
+    const isMatch = await verifyPassword(data.password, user.password);
     if (!isMatch) {
       throw new Error('INVALID_CREDENTIALS');
     }
