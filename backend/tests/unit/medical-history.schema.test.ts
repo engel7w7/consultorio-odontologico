@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { upsertMedicalHistorySchema } from '../../src/schemas/medical-history.schema';
+import { upsertMedicalHistorySchema } from '../../src/schemas/medical-history.schema.js';
 
 describe('QA Unit Tests: medical-history.schema (HU-03)', () => {
   it('rechaza si marca diabetes sin tipo', () => {

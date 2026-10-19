@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   MedicalHistoryService,
   getAlertasCriticas,
-} from '../../src/services/medical-history.service';
+} from '../../src/services/medical-history.service.js';
 
 const mockTx = {
   antecedenteMedico: {
