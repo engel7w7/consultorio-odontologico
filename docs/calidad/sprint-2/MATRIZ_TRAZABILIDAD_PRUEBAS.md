@@ -22,5 +22,5 @@
 | **HU-12** | Búsqueda vacía devuelve todos; espacios ignorados; caracteres especiales sin error. | Integración API | Supertest + Vitest | `backend/tests/integration/hu12-buscador-pacientes.qa.test.ts` | **PASS** |
 | **HU-12** | Búsqueda de más de 100 caracteres → 400. | Integración API | Supertest + Vitest | `backend/tests/integration/hu12-buscador-pacientes.qa.test.ts` | **PASS** |
 | **HU-12** | Buscar por nombre/teléfono, sin resultados, limpiar búsqueda, error del servidor. | E2E | Cypress | `frontend/cypress/e2e/hu12-buscador-pacientes.cy.ts` | **PASS** (5/5) |
-| **HU-12 / HU-04** | p95 de búsqueda y agenda $\le 2$ s con error $< 1\%$. | Rendimiento | JMeter | `docs/calidad/sprint-2/plan-rendimiento-sprint2.jmx` | **Pendiente** |
+| **HU-12 / HU-04** | p95 de búsqueda y agenda $\le 2$ s con error $< 1\%$. | Rendimiento | JMeter | `docs/calidad/sprint-2/plan-rendimiento-sprint2.jmx` | **PASS** (p95 = 421 ms, 0.00% errores) |
 | **Todas** | Regresión completa del backend (unitarias + integración). | Unitaria / Integración | Vitest Coverage | `backend/tests/**` | **PASS** (160/160; cobertura 98.36% líneas) |

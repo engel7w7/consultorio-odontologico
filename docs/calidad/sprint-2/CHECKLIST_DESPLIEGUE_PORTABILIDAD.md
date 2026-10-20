@@ -1,4 +1,5 @@
 # Checklist de Despliegue y Portabilidad (Ambiente Limpio)
+
 **Entorno de Producción - Sprint 2**  
 _(Marcar cada punto después de verificarlo en el release `develop` → `main`.)_
 
