@@ -240,7 +240,7 @@ export const DailyAgenda: React.FC = () => {
 
     return (
       <div
-        className={`w-full h-full p-1.5 rounded-md overflow-hidden flex flex-col justify-center select-none text-left leading-tight ${containerStyles}`}
+        className={`agenda-event w-full h-full p-1.5 rounded-md overflow-hidden flex flex-col justify-center select-none text-left leading-tight ${containerStyles}`}
         title={fullTooltip}
         aria-label={fullTooltip}
       >
@@ -254,8 +254,16 @@ export const DailyAgenda: React.FC = () => {
             </span>
           </div>
         ) : (
-          <div className="flex flex-col justify-center gap-0.5 overflow-hidden">
+          <div className="agenda-event__content flex flex-col justify-center gap-0.5 overflow-hidden">
             <div className={`text-xs truncate ${nameStyles}`}>
+              {estado === 'ATENDIDA' && (
+                <span
+                  className="agenda-event__status inline-flex items-center gap-1 mr-1.5 px-1.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-semibold align-middle"
+                  aria-label="Cita atendida"
+                >
+                  ✓ Atendida
+                </span>
+              )}
               {patientName}
             </div>
             <div className={`text-[11px] tabular-nums truncate flex items-center gap-1.5 ${metaStyles}`}>
@@ -270,7 +278,7 @@ export const DailyAgenda: React.FC = () => {
           </div>
         )}
         {estado === 'PROGRAMADA' && (
-          <div className="flex gap-1 mt-1">
+          <div className="flex flex-wrap gap-1 mt-1">
             <button
               type="button"
               className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-600 text-white hover:bg-emerald-700"

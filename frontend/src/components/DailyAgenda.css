@@ -54,6 +54,17 @@
   padding-top: 0.25rem;
   text-align: right;
   display: block;
+  position: relative;
+  z-index: 3;
+  background: #ffffff;
+  border-radius: 0.25rem;
+  padding-left: 0.25rem;
+}
+
+.daily-agenda .fc .fc-timegrid-slot-label {
+  position: relative;
+  z-index: 3;
+  background: #ffffff;
 }
 
 /* Quitar fondos y sombras por defecto de FullCalendar en los eventos */
@@ -70,6 +81,19 @@
 .daily-agenda .fc-timegrid-event .fc-event-main {
   padding: 0 !important;
   height: 100%;
+}
+
+.daily-agenda .agenda-event {
+  min-width: 0;
+}
+
+.daily-agenda .agenda-event__content {
+  min-width: 0;
+}
+
+.daily-agenda .agenda-event__status {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .daily-agenda .fc-timegrid-event:focus {
