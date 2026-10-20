@@ -255,19 +255,19 @@ export const DailyAgenda: React.FC = () => {
           </div>
         ) : (
           <div className="agenda-event__content flex flex-col justify-center gap-0.5 overflow-hidden">
+            {estado === 'ATENDIDA' && (
+              <span
+                className="agenda-event__status self-start inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-semibold"
+                aria-label="Cita atendida"
+              >
+                ✓ Atendida
+              </span>
+            )}
             <div className={`text-xs truncate ${nameStyles}`}>
-              {estado === 'ATENDIDA' && (
-                <span
-                  className="agenda-event__status inline-flex items-center gap-1 mr-1.5 px-1.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-semibold align-middle"
-                  aria-label="Cita atendida"
-                >
-                  ✓ Atendida
-                </span>
-              )}
               {patientName}
             </div>
             <div className={`text-[11px] tabular-nums truncate flex items-center gap-1.5 ${metaStyles}`}>
-              <span>{timeRange}</span>
+              <span className="agenda-event__time">{timeRange}</span>
               {motivo && (
                 <>
                   <span className="opacity-40">·</span>

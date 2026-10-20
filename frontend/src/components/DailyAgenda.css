@@ -77,7 +77,7 @@
   border: none !important;
   box-shadow: none !important;
   padding: 0 !important;
-  margin: 1px 2px 1px 0.75rem !important;
+  margin: 1px 2px 1px 2rem !important;
   border-radius: 0.375rem;
   overflow: hidden;
 }
@@ -97,6 +97,11 @@
 
 .daily-agenda .agenda-event__status {
   flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.daily-agenda .agenda-event__time {
+  display: block;
   white-space: nowrap;
 }
 
