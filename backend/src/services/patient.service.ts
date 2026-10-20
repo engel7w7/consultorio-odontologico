@@ -28,22 +28,27 @@ export class PatientService {
     });
   }
 
-  async getAllPatients(options?: PatientQueryOptions) {
+  async getAllPatients(options?: PatientQueryOptions | string) {
+    const query = typeof options === 'string' ? { search: options } : options;
     const where: Record<string, unknown> = {};
 
-    if (options?.search) {
-      where.nombre = { contains: options.search, mode: 'insensitive' };
+    if (query?.search?.trim()) {
+      const search = query.search.trim();
+      where.OR = [
+        { nombre: { contains: search, mode: 'insensitive' } },
+        { telefono: { contains: search } },
+      ];
     }
 
-    if (options?.status === 'validated') {
+    if (query?.status === 'validated') {
       where.examenes_sangre_validados = true;
-    } else if (options?.status === 'pending') {
+    } else if (query?.status === 'pending') {
       where.examenes_sangre_validados = false;
     }
 
-    const orderBy: Record<string, 'asc' | 'desc'> = options?.order === 'asc'
+    const orderBy: Record<string, 'asc' | 'desc'> = query?.order === 'asc'
       ? { nombre: 'asc' }
-      : options?.order === 'desc'
+      : query?.order === 'desc'
       ? { nombre: 'desc' }
       : { created_at: 'desc' };
 

@@ -9,5 +9,6 @@ const appointmentController = new AppointmentController(appointmentService);
 
 router.get('/', appointmentController.getAppointments);
 router.post('/', appointmentController.createAppointment);
+router.patch('/:id/status', appointmentController.updateStatus);
 
 export default router;

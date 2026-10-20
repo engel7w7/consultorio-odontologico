@@ -25,7 +25,7 @@ describe('QA E2E - HU-01 Login seguro', () => {
     cy.contains('Portal Odontológico Seguro').should('be.visible');
     cy.contains('Agenda Diaria').should('not.exist');
     cy.window().then((win) => {
-      expect(win.localStorage.getItem('dental_auth_token')).to.be.null;
+      expect(win.localStorage.getItem('dental_auth_token')).to.equal(null);
     });
   });
 

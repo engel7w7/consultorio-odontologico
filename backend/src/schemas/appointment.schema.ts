@@ -31,3 +31,11 @@ export const createAppointmentSchema = z
 
 export type GetAppointmentsQuery = z.input<typeof getAppointmentsQuerySchema>;
 export type CreateAppointmentInput = z.input<typeof createAppointmentSchema>;
+
+export const updateAppointmentStatusSchema = z.object({
+  estado: z.enum(['ATENDIDA', 'CANCELADA'], {
+    message: 'El estado debe ser ATENDIDA o CANCELADA',
+  }),
+});
+
+export type UpdateAppointmentStatusInput = z.infer<typeof updateAppointmentStatusSchema>;

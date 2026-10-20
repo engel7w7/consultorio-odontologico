@@ -1,6 +1,9 @@
 import { Request, Response } from 'express';
 import { PatientService } from '../services/patient.service.js';
-import { createPatientSchema } from '../schemas/patient.schema.js';
+import {
+  createPatientSchema,
+  searchPatientsQuerySchema,
+} from '../schemas/patient.schema.js';
 import { z } from 'zod';
 
 const examValidationSchema = z.object({
@@ -37,9 +40,19 @@ export class PatientController {
         status?: string;
         order?: 'asc' | 'desc';
       };
-      const patients = await this.service.getAllPatients({ search, status, order });
+      const parsedSearch = searchPatientsQuerySchema.parse({ search });
+      const query = status || order
+        ? { search: parsedSearch.search, status, order }
+        : parsedSearch.search;
+      const patients = await this.service.getAllPatients(query);
       return res.status(200).json(patients);
     } catch (error: unknown) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          error: error.issues[0]?.message || 'Error de validación',
+          issues: error.issues,
+        });
+      }
       const errorMessage = error instanceof Error ? error.message : 'Error inesperado';
       return res.status(500).json({ error: errorMessage });
     }
