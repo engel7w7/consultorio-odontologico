@@ -64,6 +64,26 @@ describe('QA Unit Tests: PatientController (Branch Coverage)', () => {
 
       expect(statusMock).toHaveBeenCalledWith(200);
       expect(jsonMock).toHaveBeenCalledWith([{ id: 'uuid-1', nombre: 'Juan' }]);
+      expect(mockService.getAllPatients).toHaveBeenCalledWith(undefined);
+    });
+
+    it('HU-12: debe enviar el término de búsqueda al servicio', async () => {
+      mockReq = { query: { search: 'Ana' } };
+      mockService.getAllPatients.mockResolvedValue([{ id: 'uuid-1', nombre: 'Ana' }]);
+
+      await controller.getAll(mockReq as Request, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(200);
+      expect(mockService.getAllPatients).toHaveBeenCalledWith('Ana');
+    });
+
+    it('HU-12: debe responder 400 si la búsqueda supera el límite', async () => {
+      mockReq = { query: { search: 'a'.repeat(101) } };
+
+      await controller.getAll(mockReq as Request, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(400);
+      expect(mockService.getAllPatients).not.toHaveBeenCalled();
     });
 
     it('debe manejar error cuando getAllPatients falla con objeto no Error', async () => {

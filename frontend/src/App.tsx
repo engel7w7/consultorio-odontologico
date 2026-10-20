@@ -3,10 +3,13 @@ import { PatientRegistrationForm } from './components/PatientRegistrationForm';
 import { BloodExamCheck } from './components/BloodExamCheck';
 import { DailyAgenda } from './components/DailyAgenda';
 import { MedicalHistory } from './components/MedicalHistory';
+import { PatientSearch } from './components/PatientSearch';
 
 function App() {
   const [examStatus, setExamStatus] = useState(false);
-  const [activeTab, setActiveTab] = useState<'registro' | 'validacion' | 'agenda' | 'antecedentes'>('registro');
+  const [activeTab, setActiveTab] = useState<
+    'registro' | 'busqueda' | 'validacion' | 'agenda' | 'antecedentes'
+  >('registro');
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 p-6 sm:p-8">
@@ -31,6 +34,16 @@ function App() {
             }`}
           >
             HU-02: Registro de Paciente
+          </button>
+          <button
+            onClick={() => setActiveTab('busqueda')}
+            className={`pb-2 px-1 text-sm font-semibold transition border-b-2 ${
+              activeTab === 'busqueda'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            HU-12: Buscador de Pacientes
           </button>
           <button
             onClick={() => setActiveTab('validacion')}
@@ -69,6 +82,8 @@ function App() {
             <div>
               <PatientRegistrationForm />
             </div>
+          ) : activeTab === 'busqueda' ? (
+            <PatientSearch />
           ) : activeTab === 'validacion' ? (
             <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
               <h2 className="text-lg font-semibold text-slate-800">

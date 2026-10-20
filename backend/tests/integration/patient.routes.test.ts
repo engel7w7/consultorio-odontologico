@@ -102,6 +102,30 @@ describe('QA Integration Tests - Rutas de Pacientes y Servidor', () => {
     expect(res.body).toHaveLength(1);
   });
 
+  it('GET /api/patients?search debe buscar por nombre o teléfono', async () => {
+    const findManySpy = vi.spyOn(prisma.patient, 'findMany').mockResolvedValue([]);
+
+    const res = await request(app).get('/api/patients?search=Ana%207');
+
+    expect(res.status).toBe(200);
+    expect(findManySpy).toHaveBeenCalledWith({
+      where: {
+        OR: [
+          { nombre: { contains: 'Ana 7', mode: 'insensitive' } },
+          { telefono: { contains: 'Ana 7' } },
+        ],
+      },
+      orderBy: { created_at: 'desc' },
+    });
+  });
+
+  it('GET /api/patients debe responder 400 si la búsqueda es demasiado larga', async () => {
+    const res = await request(app).get(`/api/patients?search=${'a'.repeat(101)}`);
+
+    expect(res.status).toBe(400);
+    expect(res.body.issues).toBeDefined();
+  });
+
   it('GET /api/patients debe responder 500 si ocurre un fallo al obtener pacientes', async () => {
     vi.spyOn(prisma.patient, 'findMany').mockRejectedValue(new Error('Fallo de lectura en BD'));
 

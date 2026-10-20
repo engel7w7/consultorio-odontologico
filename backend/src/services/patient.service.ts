@@ -15,8 +15,18 @@ export class PatientService {
     });
   }
 
-  async getAllPatients() {
+  async getAllPatients(search?: string) {
+    const normalizedSearch = search?.trim();
+
     return await this.prisma.patient.findMany({
+      where: normalizedSearch
+        ? {
+            OR: [
+              { nombre: { contains: normalizedSearch, mode: 'insensitive' } },
+              { telefono: { contains: normalizedSearch } },
+            ],
+          }
+        : undefined,
       orderBy: { created_at: 'desc' },
     });
   }
