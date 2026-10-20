@@ -67,13 +67,17 @@
   background: #ffffff;
 }
 
+.daily-agenda .fc .fc-timegrid-axis {
+  width: 3.75rem !important;
+}
+
 /* Quitar fondos y sombras por defecto de FullCalendar en los eventos */
 .daily-agenda .fc-timegrid-event-harness > .fc-timegrid-event {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
   padding: 0 !important;
-  margin: 1px 2px !important;
+  margin: 1px 2px 1px 0.75rem !important;
   border-radius: 0.375rem;
   overflow: hidden;
 }
