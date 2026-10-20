@@ -10,8 +10,8 @@ describe('QA E2E Tests - Sprint 1 (HU-03)', () => {
   });
 
   it('HU-03: Los antecedentes médicos críticos se visualizan en la ficha', () => {
-    // Espera a que el botón o pestaña de la HU-03 esté disponible y haz clic
-    cy.contains('HU-03: Antecedentes Médicos').should('be.visible').click();
+    // Espera a que el botón o pestaña de antecedentes médicos esté disponible y haz clic
+    cy.contains(/Antecedentes Médicos|HU-03: Antecedentes Médicos/).should('be.visible').click();
     
     // Verifica que los elementos clave de la sección aparezcan en pantalla
     cy.contains('Antecedentes médicos').should('be.visible');

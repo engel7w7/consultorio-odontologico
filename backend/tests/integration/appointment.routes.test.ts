@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import request from 'supertest';
-import app from '../../src/server';
-import { prisma } from '../../src/config/prisma';
+import app from '../../src/server.js';
+import { prisma } from '../../src/config/prisma.js';
 
 describe('QA Integration Tests - Rutas de Citas y Agenda (HU-04)', () => {
   beforeEach(() => {
@@ -82,23 +82,70 @@ describe('QA Integration Tests - Rutas de Citas y Agenda (HU-04)', () => {
     consoleSpy.mockRestore();
   });
 
-  it('PATCH /api/appointments/:id/status debe actualizar la cita', async () => {
+  it('POST /api/appointments responde 201 y crea la cita correctamente', async () => {
+    vi.spyOn(prisma.patient, 'findUnique').mockResolvedValue({
+      id: 'p-1',
+      nombre: 'Lucía Méndez',
+      examenes_sangre_validados: false,
+    } as any);
+
+    vi.spyOn(prisma.appointment, 'create').mockResolvedValue({
+      id: 'appt-1',
+      patient_id: 'p-1',
+      motivo: 'Control de rutina',
+      fecha_inicio: new Date('2026-10-15T10:00:00.000Z'),
+      fecha_fin: new Date('2026-10-15T10:30:00.000Z'),
+      estado: 'PROGRAMADA',
+      created_at: new Date(),
+      updated_at: new Date(),
+    } as any);
+
+    const res = await request(app).post('/api/appointments').send({
+      patient_id: '123e4567-e89b-12d3-a456-426614174000',
+      motivo: 'Control de rutina',
+      fecha_inicio: '2026-10-15T10:00:00.000Z',
+      fecha_fin: '2026-10-15T10:30:00.000Z',
+    });
+
+    expect(res.status).toBe(201);
+    expect(res.body.id).toBe('appt-1');
+  });
+
+  it('POST /api/appointments responde 422 si intenta agendar extracción sin exámenes validados', async () => {
+    vi.spyOn(prisma.patient, 'findUnique').mockResolvedValue({
+      id: '123e4567-e89b-12d3-a456-426614174000',
+      nombre: 'Lucía Méndez',
+      examenes_sangre_validados: false,
+    } as any);
+
+    const res = await request(app).post('/api/appointments').send({
+      patient_id: '123e4567-e89b-12d3-a456-426614174000',
+      motivo: 'Extracción de tercer molar',
+      fecha_inicio: '2026-10-15T10:00:00.000Z',
+      fecha_fin: '2026-10-15T10:30:00.000Z',
+    });
+
+    expect(res.status).toBe(422);
+    expect(res.body.code).toBe('EXTRACTION_BLOOD_EXAMS_REQUIRED');
+  });
+
+  it('PATCH /api/appointments/:id/status debe actualizar una cita', async () => {
     vi.spyOn(prisma.appointment, 'findUnique').mockResolvedValue({ id: 'appt-1' } as any);
     vi.spyOn(prisma.appointment, 'update').mockResolvedValue({
       id: 'appt-1',
-      estado: 'CANCELADA',
-      patient: { id: 'p-1', nombre: 'Lucía Méndez' },
+      estado: 'ATENDIDA',
+      patient: { id: 'p-1', nombre: 'Ana', examenes_sangre_validados: true },
     } as any);
 
     const res = await request(app)
       .patch('/api/appointments/appt-1/status')
-      .send({ estado: 'CANCELADA' });
+      .send({ estado: 'ATENDIDA' });
 
     expect(res.status).toBe(200);
-    expect(res.body.estado).toBe('CANCELADA');
+    expect(res.body.estado).toBe('ATENDIDA');
   });
 
-  it('PATCH /api/appointments/:id/status debe validar el estado', async () => {
+  it('PATCH /api/appointments/:id/status debe rechazar estados inválidos', async () => {
     const res = await request(app)
       .patch('/api/appointments/appt-1/status')
       .send({ estado: 'PROGRAMADA' });

@@ -7,6 +7,7 @@ const router = Router({ mergeParams: true });
 const medicalHistoryService = new MedicalHistoryService(prisma);
 const medicalHistoryController = new MedicalHistoryController(medicalHistoryService);
 
+router.get('/audit', medicalHistoryController.getAuditHistory);
 router.get('/', medicalHistoryController.getMedicalHistory);
 router.put('/', medicalHistoryController.upsertMedicalHistory);
 

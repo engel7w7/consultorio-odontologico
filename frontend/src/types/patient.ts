@@ -4,10 +4,21 @@ export interface Patient {
   telefono: string;
   edad: number;
   examenes_sangre_validados: boolean;
+  evidencia_archivo_nombre?: string | null;
+  evidencia_archivo_url?: string | null;
+  parametros_hematologicos?: string | null;
+  fecha_validacion_examenes?: string | null;
   created_at: string;
   updated_at: string;
+  tieneAntecedentesCriticos?: boolean;
+  tiene_antecedentes_criticos?: boolean;
+  tiene_antecedentes?: boolean;
+  alertas_criticas?: string[];
 }
 
 export interface UpdateBloodExamPayload {
   examenes_sangre_validados: boolean;
+  evidencia_archivo_nombre?: string | null;
+  evidencia_archivo_url?: string | null;
+  parametros_hematologicos?: string | null;
 }

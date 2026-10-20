@@ -7,7 +7,19 @@ export const patientIdParamSchema = z.object({
 });
 
 export const upsertMedicalHistorySchema = z
-  .object({
+  .preprocess((raw: unknown) => {
+    // Si viene empaquetado como { cambios: { ... }, motivo: '...' }
+    if (raw && typeof raw === 'object' && 'cambios' in raw) {
+      const obj = raw as Record<string, unknown>;
+      const cambios = (obj.cambios && typeof obj.cambios === 'object' ? obj.cambios : {}) as Record<string, unknown>;
+      return {
+        ...cambios,
+        motivo: obj.motivo,
+        usuario_id: obj.usuario_id || obj.usuarioId,
+      };
+    }
+    return raw;
+  }, z.object({
     tiene_diabetes: z.boolean({ message: 'Debe especificar si tiene diabetes' }),
     tipo_diabetes: tipoDiabetesEnum.nullable().optional(),
     tiene_hipertension: z.boolean({ message: 'Debe especificar si tiene hipertensión' }),
@@ -37,7 +49,13 @@ export const upsertMedicalHistorySchema = z
       }),
     medicacion_actual: z.string().trim().nullable().optional(),
     otras_condiciones: z.string().trim().nullable().optional(),
-  })
+    motivo: z
+      .string({ message: 'El motivo de la modificación es obligatorio' })
+      .trim()
+      .min(10, 'El motivo de la modificación debe tener al menos 10 caracteres'),
+    usuario_id: z.string().trim().nullable().optional(),
+    usuarioId: z.string().trim().nullable().optional(),
+  }))
   .refine(
     (data) => {
       if (data.tiene_diabetes) {

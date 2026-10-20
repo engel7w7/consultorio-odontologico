@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { PatientService } from '../../src/services/patient.service';
+import { PatientService } from '../../src/services/patient.service.js';
 
 const mockPrisma = {
   patient: {
@@ -77,7 +77,63 @@ describe('QA Unit Tests: PatientService (HU-02 y HU-07)', () => {
     expect(updated.examenes_sangre_validados).toBe(true);
     expect(mockPrisma.patient.update).toHaveBeenCalledWith({
       where: { id: 'uuid-1' },
-      data: { examenes_sangre_validados: true },
+      data: expect.objectContaining({ examenes_sangre_validados: true }),
+    });
+  });
+
+  it('HU-07: debe registrar validacion con evidencia de estudio escaneado y parametros', async () => {
+    mockPrisma.patient.findUnique.mockResolvedValue({ id: 'uuid-1', examenes_sangre_validados: false });
+    mockPrisma.patient.update.mockResolvedValue({
+      id: 'uuid-1',
+      examenes_sangre_validados: true,
+      evidencia_archivo_nombre: 'hemograma.pdf',
+      evidencia_archivo_url: 'data:application/pdf;base64,...',
+      parametros_hematologicos: 'Plaquetas: 250000, INR: 1.0',
+    });
+
+    const updated = await service.setBloodExamValidation('uuid-1', true, {
+      evidencia_archivo_nombre: 'hemograma.pdf',
+      evidencia_archivo_url: 'data:application/pdf;base64,...',
+      parametros_hematologicos: 'Plaquetas: 250000, INR: 1.0',
+    });
+
+    expect(updated.examenes_sangre_validados).toBe(true);
+    expect(mockPrisma.patient.update).toHaveBeenCalledWith({
+      where: { id: 'uuid-1' },
+      data: expect.objectContaining({
+        examenes_sangre_validados: true,
+        evidencia_archivo_nombre: 'hemograma.pdf',
+      }),
+    });
+  });
+
+  it('HU-07: debe filtrar por busqueda, estado y ordenar alfabeticamente', async () => {
+    mockPrisma.patient.findMany.mockResolvedValue([
+      { id: '1', nombre: 'Ana Maria' },
+      { id: '2', nombre: 'Carlos' },
+    ]);
+
+    const res = await service.getAllPatients({ search: 'Ana', status: 'validated', order: 'asc' });
+    expect(res).toHaveLength(2);
+    expect(mockPrisma.patient.findMany).toHaveBeenCalledWith({
+      where: {
+        nombre: { contains: 'Ana', mode: 'insensitive' },
+        examenes_sangre_validados: true,
+      },
+      orderBy: { nombre: 'asc' },
+      include: { antecedente_medico: true },
+    });
+  });
+
+  it('HU-07: debe filtrar por estado pending y ordenar desc', async () => {
+    mockPrisma.patient.findMany.mockResolvedValue([]);
+    await service.getAllPatients({ status: 'pending', order: 'desc' });
+    expect(mockPrisma.patient.findMany).toHaveBeenCalledWith({
+      where: {
+        examenes_sangre_validados: false,
+      },
+      orderBy: { nombre: 'desc' },
+      include: { antecedente_medico: true },
     });
   });
 
@@ -94,6 +150,52 @@ describe('QA Unit Tests: PatientService (HU-02 y HU-07)', () => {
     expect(res?.nombre).toBe('Carlos');
     expect(mockPrisma.patient.findUnique).toHaveBeenCalledWith({
       where: { id: 'uuid-1' },
+      include: { antecedente_medico: true },
     });
+  });
+
+  it('HU-03: debe calcular correctamente el flag tieneAntecedentesCriticos', async () => {
+    mockPrisma.patient.findMany.mockResolvedValue([
+      {
+        id: '1',
+        nombre: 'Paciente Crítico',
+        antecedente_medico: {
+          tiene_diabetes: true,
+          tipo_diabetes: 'TIPO_2',
+          alergias: ['Penicilina'],
+          tiene_hipertension: false,
+          tiene_cardiopatia: false,
+          toma_anticoagulantes: false,
+          esta_embarazada: false,
+        },
+      },
+      {
+        id: '2',
+        nombre: 'Paciente Sin Antecedentes',
+        antecedente_medico: null,
+      },
+      {
+        id: '3',
+        nombre: 'Paciente Sin Críticos',
+        antecedente_medico: {
+          tiene_diabetes: false,
+          tipo_diabetes: null,
+          alergias: [],
+          tiene_hipertension: false,
+          tiene_cardiopatia: false,
+          toma_anticoagulantes: false,
+          esta_embarazada: false,
+        },
+      },
+    ]);
+
+    const res = await service.getAllPatients();
+    expect(res).toHaveLength(3);
+    expect(res[0].tieneAntecedentesCriticos).toBe(true);
+    expect(res[0].alertas_criticas).toEqual(['Alergia: Penicilina', 'Diabetes tipo 2']);
+    expect(res[1].tieneAntecedentesCriticos).toBe(false);
+    expect(res[1].tiene_antecedentes).toBe(false);
+    expect(res[2].tieneAntecedentesCriticos).toBe(false);
+    expect(res[2].tiene_antecedentes).toBe(true);
   });
 });
