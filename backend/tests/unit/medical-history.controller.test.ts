@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { MedicalHistoryController } from '../../src/controllers/medical-history.controller';
+import { MedicalHistoryController } from '../../src/controllers/medical-history.controller.js';
 import { Request, Response } from 'express';
 
 describe('QA Unit Tests: MedicalHistoryController (HU-03)', () => {
@@ -14,6 +14,7 @@ describe('QA Unit Tests: MedicalHistoryController (HU-03)', () => {
     vi.clearAllMocks();
     mockService = {
       getByPatientId: vi.fn(),
+      getAuditHistory: vi.fn(),
       upsertMedicalHistory: vi.fn(),
     };
     controller = new MedicalHistoryController(mockService);
@@ -85,6 +86,70 @@ describe('QA Unit Tests: MedicalHistoryController (HU-03)', () => {
     });
   });
 
+  describe('getAuditHistory', () => {
+    const patientId = '123e4567-e89b-12d3-a456-426614174000';
+
+    it('responde 200 con la lista de auditoria del paciente', async () => {
+      mockReq = { params: { id: patientId } };
+      const mockAudit = [
+        {
+          id: 'aud-1',
+          patient_id: patientId,
+          campo: 'alergias',
+          valor_anterior: 'Ninguna',
+          valor_nuevo: 'Penicilina',
+          motivo: 'Paciente refirió reacción alérgica reciente',
+          usuario_id: 'Dr. Test',
+          fecha_hora: new Date().toISOString(),
+        },
+      ];
+      mockService.getAuditHistory.mockResolvedValue(mockAudit);
+
+      await controller.getAuditHistory(mockReq as Request, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(200);
+      expect(jsonMock).toHaveBeenCalledWith(mockAudit);
+    });
+
+    it('responde 400 si el id en getAuditHistory no es un uuid valido', async () => {
+      mockReq = { params: { id: 'invalid-id' } };
+
+      await controller.getAuditHistory(mockReq as Request, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(400);
+      expect(jsonMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error: 'ID de paciente debe ser un UUID válido',
+        })
+      );
+    });
+
+    it('responde 404 si el paciente no existe en getAuditHistory', async () => {
+      mockReq = { params: { id: patientId } };
+      mockService.getAuditHistory.mockRejectedValue(new Error('Paciente no encontrado'));
+
+      await controller.getAuditHistory(mockReq as Request, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(404);
+      expect(jsonMock).toHaveBeenCalledWith({ error: 'Paciente no encontrado' });
+    });
+
+    it('responde 500 generico ante fallo en getAuditHistory', async () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      mockReq = { params: { id: patientId } };
+      mockService.getAuditHistory.mockRejectedValue(new Error('Error en consulta SQL'));
+
+      await controller.getAuditHistory(mockReq as Request, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(500);
+      expect(jsonMock).toHaveBeenCalledWith({
+        error: 'Error interno al consultar la auditoría de antecedentes médicos',
+      });
+
+      consoleSpy.mockRestore();
+    });
+  });
+
   describe('upsertMedicalHistory', () => {
     const patientId = '123e4567-e89b-12d3-a456-426614174000';
     const validPayload = {
@@ -94,9 +159,10 @@ describe('QA Unit Tests: MedicalHistoryController (HU-03)', () => {
       toma_anticoagulantes: false,
       esta_embarazada: false,
       alergias: [],
+      motivo: 'Control médico previo a intervención dental',
     };
 
-    it('responde 200 al guardar antecedentes con datos validos', async () => {
+    it('responde 200 al guardar antecedentes con datos validos y motivo', async () => {
       mockReq = {
         params: { id: patientId },
         body: validPayload,
@@ -113,7 +179,33 @@ describe('QA Unit Tests: MedicalHistoryController (HU-03)', () => {
 
       expect(statusMock).toHaveBeenCalledWith(200);
       expect(jsonMock).toHaveBeenCalledWith(mockGuardado);
-      expect(mockService.upsertMedicalHistory).toHaveBeenCalledWith(patientId, validPayload);
+      expect(mockService.upsertMedicalHistory).toHaveBeenCalledWith(
+        patientId,
+        expect.objectContaining({
+          tiene_hipertension: true,
+          motivo: 'Control médico previo a intervención dental',
+        })
+      );
+    });
+
+    it('responde 400 si falta el motivo o es menor a 10 caracteres', async () => {
+      mockReq = {
+        params: { id: patientId },
+        body: {
+          ...validPayload,
+          motivo: 'Corto',
+        },
+      };
+
+      await controller.upsertMedicalHistory(mockReq as Request, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(400);
+      expect(jsonMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error: expect.stringContaining('al menos 10 caracteres'),
+        })
+      );
+      expect(mockService.upsertMedicalHistory).not.toHaveBeenCalled();
     });
 
     it('responde 400 si el body tiene datos invalidos', async () => {
@@ -127,6 +219,7 @@ describe('QA Unit Tests: MedicalHistoryController (HU-03)', () => {
           toma_anticoagulantes: false,
           esta_embarazada: false,
           alergias: [],
+          motivo: 'Control médico previo a intervención dental',
         },
       };
 

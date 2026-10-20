@@ -11,8 +11,8 @@ describe('QA E2E Tests - Sprint 1 (HU-04)', () => {
   });
 
   it('HU-04: La agenda diaria carga correctamente y muestra citas', () => {
-    // Haz que Cypress haga clic en el botón de la HU-04 (ajusta el texto si es distinto)
-    cy.contains('button', 'HU-04: Agenda Diaria').click();
+    // Haz que Cypress haga clic en el botón de la agenda diaria
+    cy.contains('button', /Agenda Diaria|HU-04: Agenda Diaria/).click();
 
     // Verifica que el contenedor de FullCalendar exista (clase .fc)
     cy.get('.fc').should('be.visible'); 

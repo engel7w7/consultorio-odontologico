@@ -14,10 +14,15 @@ model Patient {
   telefono                  String   @db.VarChar(20)
   edad                      Int
   examenes_sangre_validados Boolean       @default(false)
+  evidencia_archivo_nombre  String?       @db.VarChar(255)
+  evidencia_archivo_url     String?       @db.Text
+  parametros_hematologicos  String?       @db.Text
+  fecha_validacion_examenes DateTime?
   created_at                DateTime      @default(now())
   updated_at                DateTime      @updatedAt
   appointments              Appointment[]
   antecedente_medico        AntecedenteMedico?
+  medical_history_audits    MedicalHistoryAudit[]
 
   @@map("patients")
 }
@@ -72,3 +77,32 @@ model AntecedenteMedico {
 
   @@map("antecedentes_medicos")
 }
+
+model MedicalHistoryAudit {
+  id             String   @id @default(uuid())
+  patient_id     String
+  patient        Patient  @relation(fields: [patient_id], references: [id], onDelete: Restrict)
+  campo          String   @db.VarChar(100)
+  valor_anterior String?  @db.Text
+  valor_nuevo    String?  @db.Text
+  motivo         String   @db.Text
+  usuario_id     String?  @db.VarChar(100)
+  fecha_hora     DateTime @default(now())
+
+  @@index([patient_id])
+  @@map("medical_history_audits")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique @db.VarChar(150)
+  password     String   @db.VarChar(255)
+  nombre       String   @db.VarChar(150)
+  especialidad String   @default("Odontología General") @db.VarChar(100)
+  rol          String   @default("ODONTOLOGO") @db.VarChar(50)
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  @@map("users")
+}
+
