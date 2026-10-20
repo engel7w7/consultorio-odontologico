@@ -17,7 +17,7 @@
           </elementProp>
           <elementProp name="EMAIL" elementType="Argument">
             <stringProp name="Argument.name">EMAIL</stringProp>
-            <stringProp name="Argument.value">${__P(email,doctor@clinica.com)}</stringProp>
+            <stringProp name="Argument.value">${__P(email,CAMBIAR@clinica.com)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="PASSWORD" elementType="Argument">
@@ -27,7 +27,7 @@
           </elementProp>
           <elementProp name="USUARIOS" elementType="Argument">
             <stringProp name="Argument.name">USUARIOS</stringProp>
-            <stringProp name="Argument.value">${__P(usuarios,1)}</stringProp>
+            <stringProp name="Argument.value">${__P(usuarios,50)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="RAMPA" elementType="Argument">
