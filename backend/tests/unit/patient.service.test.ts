@@ -70,6 +70,35 @@ describe('QA Unit Tests: PatientService (HU-02 y HU-07)', () => {
     expect(list).toHaveLength(2);
   });
 
+  it('HU-12: debe buscar por nombre o teléfono sin distinguir mayúsculas', async () => {
+    mockPrisma.patient.findMany.mockResolvedValue([]);
+
+    await service.getAllPatients('  lucía ');
+
+    expect(mockPrisma.patient.findMany).toHaveBeenCalledWith({
+      where: {
+        OR: [
+          { nombre: { contains: 'lucía', mode: 'insensitive' } },
+          { telefono: { contains: 'lucía' } },
+        ],
+      },
+      orderBy: { created_at: 'desc' },
+      include: { antecedente_medico: true },
+    });
+  });
+
+  it('HU-12: debe listar todos los pacientes cuando no se envía búsqueda', async () => {
+    mockPrisma.patient.findMany.mockResolvedValue([]);
+
+    await service.getAllPatients();
+
+    expect(mockPrisma.patient.findMany).toHaveBeenCalledWith({
+      where: {},
+      orderBy: { created_at: 'desc' },
+      include: { antecedente_medico: true },
+    });
+  });
+
   it('HU-07: debe actualizar estado a true otorgando luz verde medica', async () => {
     mockPrisma.patient.findUnique.mockResolvedValue({ id: 'uuid-1', examenes_sangre_validados: false });
     mockPrisma.patient.update.mockResolvedValue({ id: 'uuid-1', examenes_sangre_validados: true });
@@ -117,7 +146,10 @@ describe('QA Unit Tests: PatientService (HU-02 y HU-07)', () => {
     expect(res).toHaveLength(2);
     expect(mockPrisma.patient.findMany).toHaveBeenCalledWith({
       where: {
-        nombre: { contains: 'Ana', mode: 'insensitive' },
+        OR: [
+          { nombre: { contains: 'Ana', mode: 'insensitive' } },
+          { telefono: { contains: 'Ana' } },
+        ],
         examenes_sangre_validados: true,
       },
       orderBy: { nombre: 'asc' },

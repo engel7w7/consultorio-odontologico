@@ -3,10 +3,11 @@ import { PatientRegistrationForm } from './components/PatientRegistrationForm';
 import { BloodExamCheck } from './components/BloodExamCheck';
 import { DailyAgenda } from './components/DailyAgenda';
 import { MedicalHistory } from './components/MedicalHistory';
+import { PatientSearch } from './components/PatientSearch';
 import { DoctorLogin } from './components/DoctorLogin';
 import type { AuthUser } from './types/auth';
 
-type TabType = 'registro' | 'validacion' | 'agenda' | 'antecedentes';
+type TabType = 'registro' | 'busqueda' | 'validacion' | 'agenda' | 'antecedentes';
 
 if (typeof window !== 'undefined' && !(window as any).__fetchAuthIntercepted) {
   const originalFetch = window.fetch;
@@ -181,6 +182,18 @@ function App() {
               </button>
 
               <button
+                onClick={() => setActiveTab('busqueda')}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition shrink-0 ${
+                  activeTab === 'busqueda'
+                    ? 'bg-white text-blue-600 shadow-xs border border-slate-200'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
+                }`}
+              >
+                <span className="text-blue-500">⌕</span>
+                <span>Buscador de Pacientes</span>
+              </button>
+
+              <button
                 onClick={() => setActiveTab('validacion')}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition shrink-0 ${
                   activeTab === 'validacion'
@@ -230,6 +243,8 @@ function App() {
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {activeTab === 'registro' ? (
           <PatientRegistrationForm onSelectForValidation={handleSelectForValidation} />
+        ) : activeTab === 'busqueda' ? (
+          <PatientSearch />
         ) : activeTab === 'validacion' ? (
           <BloodExamCheck patientId={selectedPatientForValidation} />
         ) : activeTab === 'agenda' ? (

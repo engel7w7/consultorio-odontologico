@@ -7,4 +7,9 @@ export const createPatientSchema = z.object({
   examenes_sangre_validados: z.boolean().optional().default(false),
 });
 
+export const searchPatientsQuerySchema = z.object({
+  search: z.string().trim().max(100, 'La búsqueda no puede superar 100 caracteres').optional(),
+});
+
 export type CreatePatientInput = z.input<typeof createPatientSchema>;
+export type SearchPatientsQuery = z.infer<typeof searchPatientsQuerySchema>;
