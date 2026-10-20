@@ -19,6 +19,7 @@ describe('QA Unit Tests: AuthService (HU-01)', () => {
       user: {
         findFirst: vi.fn(),
         findUnique: vi.fn(),
+        update: vi.fn(),
       },
     };
     service = new AuthService(mockPrisma as unknown as PrismaClient);
@@ -58,6 +59,34 @@ describe('QA Unit Tests: AuthService (HU-01)', () => {
           },
         },
       });
+    });
+
+    it('inicia sesión exitosamente y actualiza credenciales si el usuario tenía formato no estándar', async () => {
+      mockPrisma.user.findFirst.mockResolvedValue({
+        id: 'doc-plain-1',
+        email: 'dr.oropeza@gmail.com',
+        password: 'Prueba123',
+        nombre: 'Dr. Carlos Oropeza',
+        especialidad: 'Odontología General',
+        rol: 'ODONTOLOGO',
+      });
+      mockPrisma.user.update.mockResolvedValue({});
+
+      const result = await service.login({
+        email: 'dr.oropeza@gmail.com',
+        password: 'Prueba123',
+      });
+
+      expect(result).toHaveProperty('token');
+      expect(result.user.email).toBe('dr.oropeza@gmail.com');
+      expect(mockPrisma.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'doc-plain-1' },
+          data: expect.objectContaining({
+            password: expect.stringMatching(/^\$2/),
+          }),
+        })
+      );
     });
 
     it('lanza INVALID_CREDENTIALS si el usuario no existe', async () => {

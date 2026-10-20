@@ -39,6 +39,32 @@ describe('QA Unit Tests: Auth Utils (HU-01)', () => {
     expect(isWrongMatch).toBe(false);
   });
 
+  it('verifyPassword valida correctamente contraseñas almacenadas en texto plano', async () => {
+    const isMatch = await verifyPassword('Prueba123', 'Prueba123');
+    expect(isMatch).toBe(true);
+
+    const isWrong = await verifyPassword('OtraClave', 'Prueba123');
+    expect(isWrong).toBe(false);
+  });
+
+  it('verifyPassword valida correctamente contraseñas con formato derivado (salt:hash)', async () => {
+    const crypto = await import('node:crypto');
+    const salt = 'abcdef1234567890';
+    const hash = crypto.pbkdf2Sync('PasswordDerivado123', salt, 1000, 64, 'sha512').toString('hex');
+    const stored = `${salt}:${hash}`;
+
+    const isMatch = await verifyPassword('PasswordDerivado123', stored);
+    expect(isMatch).toBe(true);
+
+    const isWrong = await verifyPassword('ClaveErronea', stored);
+    expect(isWrong).toBe(false);
+  });
+
+  it('verifyPassword retorna false si se envían valores vacíos', async () => {
+    expect(await verifyPassword('', 'hash')).toBe(false);
+    expect(await verifyPassword('pass', '')).toBe(false);
+  });
+
   it('generateToken y verifyToken generan y verifican un JWT válido', () => {
     const payload = {
       userId: 'user-uuid-1',

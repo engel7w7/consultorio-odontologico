@@ -14,8 +14,39 @@ export async function hashPassword(password: string): Promise<string> {
   return await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
 }
 
-export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  return await bcrypt.compare(password, hash);
+export async function verifyPassword(password: string, storedHash: string): Promise<boolean> {
+  if (!password || !storedHash) return false;
+
+  if (password === storedHash) {
+    return true;
+  }
+
+  if (storedHash.startsWith('$2')) {
+    try {
+      const isMatch = await bcrypt.compare(password, storedHash);
+      if (isMatch) return true;
+    } catch {
+      // Continuar con verificación alternativa
+    }
+  }
+
+  if (storedHash.includes(':')) {
+    try {
+      const [salt, key] = storedHash.split(':');
+      if (salt && key) {
+        const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
+        const keyBuf = Buffer.from(key, 'hex');
+        const hashBuf = Buffer.from(hash, 'hex');
+        if (keyBuf.length === hashBuf.length && crypto.timingSafeEqual(keyBuf, hashBuf)) {
+          return true;
+        }
+      }
+    } catch {
+      // Continuar con verificación alternativa
+    }
+  }
+
+  return false;
 }
 
 function getJwtSecret(): string {

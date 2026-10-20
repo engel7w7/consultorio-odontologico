@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { verifyPassword, generateToken, verifyToken } from '../utils/auth.utils.js';
+import { hashPassword, verifyPassword, generateToken, verifyToken } from '../utils/auth.utils.js';
 import { LoginInput } from '../schemas/auth.schema.js';
 
 export class AuthService {
@@ -23,6 +23,18 @@ export class AuthService {
     const isMatch = await verifyPassword(data.password, user.password);
     if (!isMatch) {
       throw new Error('INVALID_CREDENTIALS');
+    }
+
+    if (!user.password.startsWith('$2')) {
+      try {
+        const securePassword = await hashPassword(data.password);
+        await this.prisma.user.update({
+          where: { id: user.id },
+          data: { password: securePassword },
+        });
+      } catch {
+        // No bloquear el inicio de sesión si la actualización opcional falla
+      }
     }
 
     const token = generateToken({
