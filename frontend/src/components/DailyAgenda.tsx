@@ -191,6 +191,35 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
     return `${String(initialHour).padStart(2, '0')}:00:00`;
   }, [appointments, initialHour]);
 
+  const updateAppointmentStatus = useCallback(
+    async (appointmentId: string, estado: 'ATENDIDA' | 'CANCELADA') => {
+      try {
+        const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, '');
+        const response = await fetch(`${apiUrl}/api/appointments/${appointmentId}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ estado }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || 'Error al actualizar el estado de la cita');
+        }
+
+        const updatedAppointment: Appointment = await response.json();
+        setAppointments((current) =>
+          current.map((appointment) =>
+            appointment.id === updatedAppointment.id ? updatedAppointment : appointment
+          )
+        );
+        setError(null);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Error al actualizar la cita');
+      }
+    },
+    []
+  );
+
   const events = useMemo(() => {
     return appointments.map((appt) => ({
       id: appt.id,
@@ -335,7 +364,7 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
 
     return (
       <div
-        className={`w-full h-full p-1.5 rounded-md overflow-hidden flex flex-col justify-center select-none text-left leading-tight ${containerStyles}`}
+        className={`agenda-event w-full h-full p-1.5 rounded-md overflow-hidden flex flex-col justify-center select-none text-left leading-tight ${containerStyles}`}
         title={fullTooltip}
         aria-label={fullTooltip}
       >
@@ -349,12 +378,20 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
             </span>
           </div>
         ) : (
-          <div className="flex flex-col justify-center gap-0.5 overflow-hidden">
+          <div className="agenda-event__content flex flex-col justify-center gap-0.5 overflow-hidden">
+            {estado === 'ATENDIDA' && (
+              <span
+                className="agenda-event__status self-start inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-semibold"
+                aria-label="Cita atendida"
+              >
+                ✓ Atendida
+              </span>
+            )}
             <div className={`text-xs truncate ${nameStyles}`}>
               {patientName}
             </div>
             <div className={`text-[11px] tabular-nums truncate flex items-center gap-1.5 ${metaStyles}`}>
-              <span>{timeRange}</span>
+              <span className="agenda-event__time">{timeRange}</span>
               {motivo && (
                 <>
                   <span className="opacity-40">·</span>
@@ -362,6 +399,32 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
                 </>
               )}
             </div>
+          </div>
+        )}
+        {estado === 'PROGRAMADA' && (
+          <div className="flex flex-wrap gap-1 mt-1">
+            <button
+              type="button"
+              className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-600 text-white hover:bg-emerald-700"
+              onClick={(event) => {
+                event.stopPropagation();
+                void updateAppointmentStatus(eventInfo.event.id, 'ATENDIDA');
+              }}
+              aria-label={`Marcar cita de ${patientName} como atendida`}
+            >
+              Atender
+            </button>
+            <button
+              type="button"
+              className="text-[10px] px-1.5 py-0.5 rounded bg-slate-500 text-white hover:bg-slate-600"
+              onClick={(event) => {
+                event.stopPropagation();
+                void updateAppointmentStatus(eventInfo.event.id, 'CANCELADA');
+              }}
+              aria-label={`Cancelar cita de ${patientName}`}
+            >
+              Cancelar
+            </button>
           </div>
         )}
       </div>

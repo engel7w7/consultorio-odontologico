@@ -128,5 +128,28 @@ describe('QA Integration Tests - Rutas de Citas y Agenda (HU-04)', () => {
     expect(res.status).toBe(422);
     expect(res.body.code).toBe('EXTRACTION_BLOOD_EXAMS_REQUIRED');
   });
-});
 
+  it('PATCH /api/appointments/:id/status debe actualizar una cita', async () => {
+    vi.spyOn(prisma.appointment, 'findUnique').mockResolvedValue({ id: 'appt-1' } as any);
+    vi.spyOn(prisma.appointment, 'update').mockResolvedValue({
+      id: 'appt-1',
+      estado: 'ATENDIDA',
+      patient: { id: 'p-1', nombre: 'Ana', examenes_sangre_validados: true },
+    } as any);
+
+    const res = await request(app)
+      .patch('/api/appointments/appt-1/status')
+      .send({ estado: 'ATENDIDA' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.estado).toBe('ATENDIDA');
+  });
+
+  it('PATCH /api/appointments/:id/status debe rechazar estados inválidos', async () => {
+    const res = await request(app)
+      .patch('/api/appointments/appt-1/status')
+      .send({ estado: 'PROGRAMADA' });
+
+    expect(res.status).toBe(400);
+  });
+});

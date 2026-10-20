@@ -84,4 +84,28 @@ export class AppointmentService {
       },
     });
   }
+
+  async updateAppointmentStatus(appointmentId: string, estado: 'ATENDIDA' | 'CANCELADA') {
+    const appointment = await this.prisma.appointment.findUnique({
+      where: { id: appointmentId },
+    });
+
+    if (!appointment) {
+      throw new Error('Cita no encontrada');
+    }
+
+    return await this.prisma.appointment.update({
+      where: { id: appointmentId },
+      data: { estado },
+      include: {
+        patient: {
+          select: {
+            id: true,
+            nombre: true,
+            examenes_sangre_validados: true,
+          },
+        },
+      },
+    });
+  }
 }
