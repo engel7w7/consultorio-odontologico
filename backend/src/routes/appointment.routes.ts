@@ -8,5 +8,6 @@ const appointmentService = new AppointmentService(prisma);
 const appointmentController = new AppointmentController(appointmentService);
 
 router.get('/', appointmentController.getAppointments);
+router.patch('/:id/status', appointmentController.updateStatus);
 
 export default router;

@@ -144,6 +144,35 @@ export const DailyAgenda: React.FC = () => {
     return `${String(initialHour).padStart(2, '0')}:00:00`;
   }, [appointments, initialHour]);
 
+  const updateAppointmentStatus = useCallback(
+    async (appointmentId: string, estado: 'ATENDIDA' | 'CANCELADA') => {
+      try {
+        const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, '');
+        const response = await fetch(`${apiUrl}/api/appointments/${appointmentId}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ estado }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || 'Error al actualizar el estado de la cita');
+        }
+
+        const updatedAppointment: Appointment = await response.json();
+        setAppointments((current) =>
+          current.map((appointment) =>
+            appointment.id === updatedAppointment.id ? updatedAppointment : appointment
+          )
+        );
+        setError(null);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Error al actualizar la cita');
+      }
+    },
+    []
+  );
+
   const events = useMemo(() => {
     return appointments.map((appt) => ({
       id: appt.id,
@@ -238,6 +267,32 @@ export const DailyAgenda: React.FC = () => {
                 </>
               )}
             </div>
+          </div>
+        )}
+        {estado === 'PROGRAMADA' && (
+          <div className="flex gap-1 mt-1">
+            <button
+              type="button"
+              className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-600 text-white hover:bg-emerald-700"
+              onClick={(event) => {
+                event.stopPropagation();
+                void updateAppointmentStatus(eventInfo.event.id, 'ATENDIDA');
+              }}
+              aria-label={`Marcar cita de ${patientName} como atendida`}
+            >
+              Atender
+            </button>
+            <button
+              type="button"
+              className="text-[10px] px-1.5 py-0.5 rounded bg-slate-500 text-white hover:bg-slate-600"
+              onClick={(event) => {
+                event.stopPropagation();
+                void updateAppointmentStatus(eventInfo.event.id, 'CANCELADA');
+              }}
+              aria-label={`Cancelar cita de ${patientName}`}
+            >
+              Cancelar
+            </button>
           </div>
         )}
       </div>

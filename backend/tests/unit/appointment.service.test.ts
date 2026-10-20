@@ -4,6 +4,8 @@ import { AppointmentService } from '../../src/services/appointment.service';
 const mockPrisma = {
   appointment: {
     findMany: vi.fn(),
+    findUnique: vi.fn(),
+    update: vi.fn(),
   },
 } as any;
 
@@ -77,5 +79,33 @@ describe('QA Unit Tests: AppointmentService (HU-04)', () => {
         },
       },
     });
+  });
+
+  it('debe actualizar el estado de una cita e incluir el paciente', async () => {
+    mockPrisma.appointment.findUnique.mockResolvedValue({ id: 'appt-1' });
+    const updatedAppointment = { id: 'appt-1', estado: 'ATENDIDA' };
+    mockPrisma.appointment.update.mockResolvedValue(updatedAppointment);
+
+    const result = await service.updateAppointmentStatus('appt-1', 'ATENDIDA');
+
+    expect(result).toEqual(updatedAppointment);
+    expect(mockPrisma.appointment.update).toHaveBeenCalledWith({
+      where: { id: 'appt-1' },
+      data: { estado: 'ATENDIDA' },
+      include: {
+        patient: {
+          select: { id: true, nombre: true },
+        },
+      },
+    });
+  });
+
+  it('debe rechazar la actualización si la cita no existe', async () => {
+    mockPrisma.appointment.findUnique.mockResolvedValue(null);
+
+    await expect(
+      service.updateAppointmentStatus('inexistente', 'CANCELADA')
+    ).rejects.toThrow('Cita no encontrada');
+    expect(mockPrisma.appointment.update).not.toHaveBeenCalled();
   });
 });

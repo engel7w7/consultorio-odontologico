@@ -81,4 +81,28 @@ describe('QA Integration Tests - Rutas de Citas y Agenda (HU-04)', () => {
 
     consoleSpy.mockRestore();
   });
+
+  it('PATCH /api/appointments/:id/status debe actualizar la cita', async () => {
+    vi.spyOn(prisma.appointment, 'findUnique').mockResolvedValue({ id: 'appt-1' } as any);
+    vi.spyOn(prisma.appointment, 'update').mockResolvedValue({
+      id: 'appt-1',
+      estado: 'CANCELADA',
+      patient: { id: 'p-1', nombre: 'Lucía Méndez' },
+    } as any);
+
+    const res = await request(app)
+      .patch('/api/appointments/appt-1/status')
+      .send({ estado: 'CANCELADA' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.estado).toBe('CANCELADA');
+  });
+
+  it('PATCH /api/appointments/:id/status debe validar el estado', async () => {
+    const res = await request(app)
+      .patch('/api/appointments/appt-1/status')
+      .send({ estado: 'PROGRAMADA' });
+
+    expect(res.status).toBe(400);
+  });
 });

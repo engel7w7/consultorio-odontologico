@@ -50,7 +50,7 @@ function App() {
                 : 'border-transparent text-slate-500 hover:text-slate-700'
             }`}
           >
-            HU-04: Agenda Diaria
+            HU-04/HU-06: Agenda y Estado de Cita
           </button>
           <button
             onClick={() => setActiveTab('antecedentes')}

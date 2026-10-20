@@ -15,6 +15,7 @@ describe('QA Unit Tests: AppointmentController (HU-04)', () => {
     vi.clearAllMocks();
     mockService = {
       getDailyAppointments: vi.fn(),
+      updateAppointmentStatus: vi.fn(),
     };
     controller = new AppointmentController(mockService);
 
@@ -143,5 +144,39 @@ describe('QA Unit Tests: AppointmentController (HU-04)', () => {
     expect(consoleSpy).toHaveBeenCalledWith('Error al consultar la agenda:', 'String de error desconocido');
 
     consoleSpy.mockRestore();
+  });
+
+  it('debe actualizar una cita a atendida', async () => {
+    const appointment = { id: 'appt-1', estado: 'ATENDIDA' };
+    mockReq = { params: { id: 'appt-1' }, body: { estado: 'ATENDIDA' } };
+    mockService.updateAppointmentStatus.mockResolvedValue(appointment);
+
+    await controller.updateStatus(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(200);
+    expect(jsonMock).toHaveBeenCalledWith(appointment);
+    expect(mockService.updateAppointmentStatus).toHaveBeenCalledWith(
+      'appt-1',
+      'ATENDIDA'
+    );
+  });
+
+  it('debe responder 400 si el estado no es válido', async () => {
+    mockReq = { params: { id: 'appt-1' }, body: { estado: 'PROGRAMADA' } };
+
+    await controller.updateStatus(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(400);
+    expect(mockService.updateAppointmentStatus).not.toHaveBeenCalled();
+  });
+
+  it('debe responder 404 si la cita no existe', async () => {
+    mockReq = { params: { id: 'inexistente' }, body: { estado: 'CANCELADA' } };
+    mockService.updateAppointmentStatus.mockRejectedValue(new Error('Cita no encontrada'));
+
+    await controller.updateStatus(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(404);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Cita no encontrada' });
   });
 });
