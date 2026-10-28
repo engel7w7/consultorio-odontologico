@@ -5,6 +5,7 @@ import esLocale from '@fullcalendar/core/locales/es';
 import type { DatesSetArg, EventContentArg } from '@fullcalendar/core';
 import type { Appointment, EstadoCita, CreateAppointmentPayload } from '../types/appointment';
 import type { Patient } from '../types/patient';
+import { buildWhatsAppReminderUrl } from '../utils/whatsapp.utils';
 import './DailyAgenda.css';
 
 interface DailyAgendaProps {
@@ -231,8 +232,10 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
       textColor: '#0f172a',
       extendedProps: {
         patientName: appt.patient.nombre,
+        patientPhone: appt.patient.telefono,
         estado: appt.estado,
         motivo: appt.motivo,
+        fechaInicio: appt.fecha_inicio,
       },
     }));
   }, [appointments]);
@@ -315,10 +318,12 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
   };
 
   const renderEventContent = (eventInfo: EventContentArg) => {
-    const { patientName, estado, motivo } = eventInfo.event.extendedProps as {
+    const { patientName, patientPhone, estado, motivo, fechaInicio } = eventInfo.event.extendedProps as {
       patientName: string;
+      patientPhone: string;
       estado: EstadoCita;
       motivo: string;
+      fechaInicio: string;
     };
 
     const startDate = eventInfo.event.start;
@@ -344,6 +349,7 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
           ? 'Atendida'
           : 'Cancelada';
     const fullTooltip = `${patientName} (${timeRange}) · ${statusLabel}${motivo ? ` · ${motivo}` : ''}`;
+    const whatsappUrl = buildWhatsAppReminderUrl(patientPhone, patientName, fechaInicio, motivo);
 
     let containerStyles =
       'bg-white border-l-[3px] border-l-sky-600 border-y border-r border-slate-200/90';
@@ -426,6 +432,18 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
               Cancelar
             </button>
           </div>
+        )}
+        {whatsappUrl && (
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex self-start items-center gap-1 mt-1 text-[10px] px-1.5 py-0.5 rounded bg-green-600 text-white hover:bg-green-700"
+            onClick={(event) => event.stopPropagation()}
+            aria-label={`Enviar recordatorio de WhatsApp a ${patientName}`}
+          >
+            WhatsApp
+          </a>
         )}
       </div>
     );
@@ -821,4 +839,3 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
     </div>
   );
 };
-
