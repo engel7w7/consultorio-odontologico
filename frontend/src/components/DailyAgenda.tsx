@@ -384,14 +384,30 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
             </span>
           </div>
         ) : (
-          <div className="agenda-event__content flex flex-col justify-center gap-0.5 overflow-hidden">
-            {estado === 'ATENDIDA' && (
-              <span
-                className="agenda-event__status self-start inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-semibold"
-                aria-label="Cita atendida"
-              >
-                ✓ Atendida
-              </span>
+          <div className="agenda-event__content flex flex-col justify-start gap-0.5 overflow-hidden">
+            {(estado === 'ATENDIDA' || whatsappUrl) && (
+              <div className="flex min-w-0 items-center gap-1">
+                {estado === 'ATENDIDA' && (
+                  <span
+                    className="agenda-event__status inline-flex shrink-0 items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-semibold"
+                    aria-label="Cita atendida"
+                  >
+                    ✓ Atendida
+                  </span>
+                )}
+                {whatsappUrl && (
+                  <a
+                    href={whatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-w-0 items-center gap-1 rounded bg-green-600 px-1.5 py-0.5 text-[10px] text-white hover:bg-green-700"
+                    onClick={(event) => event.stopPropagation()}
+                    aria-label={`Enviar recordatorio de WhatsApp a ${patientName}`}
+                  >
+                    WhatsApp
+                  </a>
+                )}
+              </div>
             )}
             <div className={`text-xs truncate ${nameStyles}`}>
               {patientName}
@@ -433,12 +449,12 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
             </button>
           </div>
         )}
-        {whatsappUrl && (
+        {isShort && whatsappUrl && (
           <a
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex self-start items-center gap-1 mt-1 text-[10px] px-1.5 py-0.5 rounded bg-green-600 text-white hover:bg-green-700"
+            className="inline-flex self-start items-center gap-1 mt-1 whitespace-nowrap text-[10px] px-1.5 py-0.5 rounded bg-green-600 text-white hover:bg-green-700"
             onClick={(event) => event.stopPropagation()}
             aria-label={`Enviar recordatorio de WhatsApp a ${patientName}`}
           >
