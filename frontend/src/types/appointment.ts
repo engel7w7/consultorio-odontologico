@@ -13,6 +13,7 @@ export interface Appointment {
   fecha_inicio: string;
   fecha_fin: string;
   estado: EstadoCita;
+  monto_pagado: number | string | null;
   created_at: string;
   updated_at: string;
 }

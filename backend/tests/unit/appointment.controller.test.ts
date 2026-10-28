@@ -15,6 +15,7 @@ describe('QA Unit Tests: AppointmentController (HU-04)', () => {
     vi.clearAllMocks();
     mockService = {
       getDailyAppointments: vi.fn(),
+      registerPayment: vi.fn(),
     };
     controller = new AppointmentController(mockService);
 
@@ -280,6 +281,29 @@ describe('QA Unit Tests: AppointmentController (HU-04)', () => {
       expect(statusMock).toHaveBeenCalledWith(500);
       expect(jsonMock).toHaveBeenCalledWith({ error: 'Error interno al agendar la cita' });
       consoleSpy.mockRestore();
+    });
+  });
+
+  describe('registerPayment (HU-11)', () => {
+    it('responde 200 con el monto registrado', async () => {
+      const appointment = { id: 'appt-1', monto_pagado: 150 };
+      mockReq = { params: { id: 'appt-1' }, body: { monto_pagado: 150 } };
+      mockService.registerPayment.mockResolvedValue(appointment);
+
+      await controller.registerPayment(mockReq as Request, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(200);
+      expect(jsonMock).toHaveBeenCalledWith(appointment);
+      expect(mockService.registerPayment).toHaveBeenCalledWith('appt-1', 150);
+    });
+
+    it('responde 400 cuando el monto es negativo', async () => {
+      mockReq = { params: { id: 'appt-1' }, body: { monto_pagado: -1 } };
+
+      await controller.registerPayment(mockReq as Request, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(400);
+      expect(mockService.registerPayment).not.toHaveBeenCalled();
     });
   });
 });

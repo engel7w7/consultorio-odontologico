@@ -108,4 +108,29 @@ export class AppointmentService {
       },
     });
   }
+
+  async registerPayment(appointmentId: string, montoPagado: number) {
+    const appointment = await this.prisma.appointment.findUnique({
+      where: { id: appointmentId },
+    });
+
+    if (!appointment) {
+      throw new Error('Cita no encontrada');
+    }
+
+    return await this.prisma.appointment.update({
+      where: { id: appointmentId },
+      data: { monto_pagado: montoPagado },
+      include: {
+        patient: {
+          select: {
+            id: true,
+            nombre: true,
+            telefono: true,
+            examenes_sangre_validados: true,
+          },
+        },
+      },
+    });
+  }
 }
