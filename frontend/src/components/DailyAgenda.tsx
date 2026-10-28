@@ -435,7 +435,7 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
         {estado === 'ATENDIDA' && (
           <button
             type="button"
-            className="inline-flex self-start items-center gap-1 mt-1 text-[10px] px-1.5 py-0.5 rounded bg-blue-600 text-white hover:bg-blue-700"
+            className="inline-flex max-w-full self-start items-center gap-1 mt-1 text-[10px] px-1.5 py-0.5 rounded bg-blue-600 text-white hover:bg-blue-700"
             onClick={(event) => {
               event.stopPropagation();
               const appointment = appointments.find((item) => item.id === eventInfo.event.id);
@@ -448,7 +448,7 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
             }}
             aria-label={`Registrar cobro de ${patientName}`}
           >
-            {montoPagado === null ? 'Registrar cobro' : `Cobrado Bs ${montoPagado}`}
+            {montoPagado == null ? 'Registrar cobro' : `Cobrado Bs ${String(montoPagado)}`}
           </button>
         )}
       </div>

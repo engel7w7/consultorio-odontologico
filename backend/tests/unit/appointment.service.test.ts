@@ -66,6 +66,7 @@ describe('QA Unit Tests: AppointmentService (HU-04 y HU-08)', () => {
           select: {
             id: true,
             nombre: true,
+            telefono: true,
           },
         },
       },
@@ -91,6 +92,7 @@ describe('QA Unit Tests: AppointmentService (HU-04 y HU-08)', () => {
         select: {
           id: true,
           nombre: true,
+          telefono: true,
         },
       },
     });
