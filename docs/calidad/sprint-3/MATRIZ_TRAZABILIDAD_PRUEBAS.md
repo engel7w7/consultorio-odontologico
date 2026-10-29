@@ -1,12 +1,13 @@
 # Matriz de Trazabilidad de Pruebas - Sprint 3
 **Proyecto:** Consultorio Odontológico | **QA Revisora:** Equipo de Aseguramiento de Calidad  
-**Fecha:** 29 de octubre de 2026 | **Estándar:** IEEE Std 730 / SQAP (Sección 7)
+**Fecha:** 29 de octubre de 2026 | **Estándar:** IEEE Std 730 / SQAP (Sección 7)  
+**Estado Global:** HU-10: PASS (observación menor) | HU-11: 3 FALLOS PENDIENTES DE CODIGO | HU-13: PASS
 
 ---
 
 ## 1. Detalle de Casos de Prueba
 
-| HU | Caso | Escenario Evaluado | Nivel | Herramienta | Resultado |
+| HU | Caso | Escenario Evaluado | Nivel | Herramienta | Resultado Actual |
 | :---: | :---: | :--- | :---: | :---: | :---: |
 | **HU-10** | CP-10-01 | Listado de tratamientos en orden desc (más reciente primero) | API | Vitest / Supertest | PASS |
 | **HU-10** | CP-10-02 | Parámetro ?orden=asc consulta en orden ascendente | API | Vitest / Supertest | PASS |
@@ -21,10 +22,13 @@
 | **HU-10** | CP-10-E2E-02 | Selector interactivo de orden actualiza la vista a ascendente | E2E | Cypress | PASS |
 | **HU-10** | CP-10-E2E-03 | Estado vacío visual cuando el paciente no tiene tratamientos | E2E | Cypress | PASS |
 | **HU-10** | CP-10-E2E-04 | Cambio entre pacientes limpia y no mezcla tratamientos | E2E | Cypress | PASS |
-| **HU-11** | CP-11-01 | Registrar cobro con monto válido responde 200 y persiste monto | API | Vitest / Supertest | PASS |
+| **HU-11** | CP-11-01 | Registrar cobro con monto válido en cita atendida responde 200 | API | Vitest / Supertest | PASS |
 | **HU-11** | CP-11-02 | Monto negativo en el cobro responde 400 | API | Vitest / Supertest | PASS |
 | **HU-11** | CP-11-03 | Registrar cobro a cita inexistente responde 404 | Unitario | Vitest | PASS |
 | **HU-11** | CP-11-04 | Fallo inesperado en servicio responde 500 | Unitario | Vitest | PASS |
+| **HU-11** | CP-11-05 | Rechazar cobro en cita PROGRAMADA/CANCELADA en servicio | Unitario | Vitest | **FAIL (Pendiente Dev)** |
+| **HU-11** | CP-11-06 | Controlador responde 422 si cita no está atendida | Unitario | Vitest | **FAIL (Pendiente Dev)** |
+| **HU-11** | CP-11-07 | Endpoint PATCH responde 422 si cita no está atendida | Integración | Supertest | **FAIL (Pendiente Dev)** |
 | **HU-11** | CP-11-SCH-01 | registerPaymentSchema valida enteros y decimales positivos | Unitario | Vitest | PASS |
 | **HU-11** | CP-11-SCH-02 | registerPaymentSchema permite monto cero | Unitario | Vitest | PASS |
 | **HU-11** | CP-11-SCH-03 | registerPaymentSchema rechaza montos negativos | Unitario | Vitest | PASS |
@@ -46,6 +50,7 @@
 ---
 
 ## 2. Resumen de Ejecución
-- **Total Casos Ejecutados:** 34 casos (unitarios, integración y E2E).
-- **Aprobados:** 34 (100% de los casos implementados en verde).
-- **Cobertura de Código Crítica:** Supera la meta SQAP del 80% en todas las ramas evaluadas (>97% de líneas).
+- **Total Casos Definidos:** 37 casos de prueba.
+- **Aprobados:** 34 casos (91.9%).
+- **Fallos Registrados:** 3 casos en HU-11 (regla clínica pendiente de implementar en código del servicio y controlador).
+- **Cobertura Global en Backend:** >97% líneas / >87% ramas.
