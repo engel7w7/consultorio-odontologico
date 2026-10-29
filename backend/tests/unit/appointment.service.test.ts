@@ -213,16 +213,17 @@ describe('QA Unit Tests: AppointmentService (HU-04 y HU-08)', () => {
     });
 
     describe('registerPayment (HU-11)', () => {
-      it('registra el monto pagado de una cita', async () => {
-        mockPrisma.appointment.findUnique.mockResolvedValue({ id: 'appt-1' });
+      it('registra el monto pagado de una cita atendida', async () => {
+        mockPrisma.appointment.findUnique.mockResolvedValue({ id: 'appt-1', estado: 'ATENDIDA' });
         mockPrisma.appointment.update.mockResolvedValue({
           id: 'appt-1',
           monto_pagado: 150,
+          estado: 'ATENDIDA',
         });
 
         const result = await service.registerPayment('appt-1', 150);
 
-        expect(result).toEqual({ id: 'appt-1', monto_pagado: 150 });
+        expect(result).toEqual({ id: 'appt-1', monto_pagado: 150, estado: 'ATENDIDA' });
         expect(mockPrisma.appointment.update).toHaveBeenCalledWith({
           where: { id: 'appt-1' },
           data: { monto_pagado: 150 },
@@ -237,6 +238,15 @@ describe('QA Unit Tests: AppointmentService (HU-04 y HU-08)', () => {
             },
           },
         });
+      });
+
+      it('rechaza el cobro si la cita no esta en estado ATENDIDA', async () => {
+        mockPrisma.appointment.findUnique.mockResolvedValue({ id: 'appt-1', estado: 'PROGRAMADA' });
+
+        await expect(service.registerPayment('appt-1', 150)).rejects.toThrow(
+          'Solo se pueden registrar cobros en citas atendidas'
+        );
+        expect(mockPrisma.appointment.update).not.toHaveBeenCalled();
       });
 
       it('rechaza el cobro si la cita no existe', async () => {

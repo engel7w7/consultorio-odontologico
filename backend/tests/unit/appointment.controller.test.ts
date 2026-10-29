@@ -359,6 +359,20 @@ describe('QA Unit Tests: AppointmentController (HU-04)', () => {
       expect(jsonMock).toHaveBeenCalledWith({ error: 'Cita no encontrada' });
     });
 
+    it('responde 422 cuando la cita no esta en estado ATENDIDA', async () => {
+      mockReq = { params: { id: 'appt-1' }, body: { monto_pagado: 120 } };
+      mockService.registerPayment.mockRejectedValue(
+        new Error('Solo se pueden registrar cobros en citas atendidas')
+      );
+
+      await controller.registerPayment(mockReq as Request, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(422);
+      expect(jsonMock).toHaveBeenCalledWith({
+        error: 'Solo se pueden registrar cobros en citas atendidas',
+      });
+    });
+
     it('responde 500 en fallo inesperado al registrar cobro', async () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       mockReq = { params: { id: 'appt-1' }, body: { monto_pagado: 120 } };
