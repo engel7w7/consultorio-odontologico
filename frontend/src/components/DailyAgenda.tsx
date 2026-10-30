@@ -389,7 +389,7 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
             </span>
           </div>
         ) : (
-          <div className="agenda-event__content flex flex-col justify-start gap-0.5 overflow-hidden">
+          <div className="agenda-event__content flex flex-col justify-start gap-1">
             {(estado === 'ATENDIDA' || montoPagado != null || whatsappUrl) && (
               <div className="agenda-event__actions flex min-w-0 flex-wrap items-center gap-1">
                 {estado === 'ATENDIDA' && (
@@ -436,12 +436,12 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
             <div className={`text-[13px] truncate ${nameStyles}`}>
               {patientName}
             </div>
-            <div className={`text-xs tabular-nums truncate flex items-center gap-1.5 ${metaStyles}`}>
-              <span className="agenda-event__time">{timeRange}</span>
+            <div className={`agenda-event__details text-xs tabular-nums flex flex-wrap items-center gap-x-1.5 gap-y-0.5 ${metaStyles}`}>
+              <span className="agenda-event__time shrink-0">{timeRange}</span>
               {motivo && (
                 <>
                   <span className="opacity-40">·</span>
-                  <span className="truncate">{motivo}</span>
+                  <span className="min-w-0 break-words">{motivo}</span>
                 </>
               )}
             </div>
