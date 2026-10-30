@@ -15,6 +15,7 @@ describe('QA Unit Tests: AppointmentController (HU-04)', () => {
     vi.clearAllMocks();
     mockService = {
       getDailyAppointments: vi.fn(),
+      registerPayment: vi.fn(),
     };
     controller = new AppointmentController(mockService);
 
@@ -279,6 +280,108 @@ describe('QA Unit Tests: AppointmentController (HU-04)', () => {
 
       expect(statusMock).toHaveBeenCalledWith(500);
       expect(jsonMock).toHaveBeenCalledWith({ error: 'Error interno al agendar la cita' });
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe('updateStatus (HU-06)', () => {
+    it('responde 200 con la cita actualizada a ATENDIDA o CANCELADA', async () => {
+      const updated = { id: 'appt-1', estado: 'ATENDIDA' };
+      mockReq = { params: { id: 'appt-1' }, body: { estado: 'ATENDIDA' } };
+      mockService.updateAppointmentStatus = vi.fn().mockResolvedValue(updated);
+
+      await controller.updateStatus(mockReq as Request, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(200);
+      expect(jsonMock).toHaveBeenCalledWith(updated);
+    });
+
+    it('responde 400 cuando el estado es invalido', async () => {
+      mockReq = { params: { id: 'appt-1' }, body: { estado: 'NO_VALIDO' } };
+
+      await controller.updateStatus(mockReq as Request, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(400);
+    });
+
+    it('responde 404 cuando la cita no existe', async () => {
+      mockReq = { params: { id: 'appt-inexistente' }, body: { estado: 'ATENDIDA' } };
+      mockService.updateAppointmentStatus = vi.fn().mockRejectedValue(new Error('Cita no encontrada'));
+
+      await controller.updateStatus(mockReq as Request, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(404);
+      expect(jsonMock).toHaveBeenCalledWith({ error: 'Cita no encontrada' });
+    });
+
+    it('responde 500 en fallo inesperado al actualizar estado', async () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      mockReq = { params: { id: 'appt-1' }, body: { estado: 'ATENDIDA' } };
+      mockService.updateAppointmentStatus = vi.fn().mockRejectedValue(new Error('Fallo de base de datos'));
+
+      await controller.updateStatus(mockReq as Request, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(500);
+      expect(jsonMock).toHaveBeenCalledWith({ error: 'Error interno al actualizar la cita' });
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe('registerPayment (HU-11)', () => {
+    it('responde 200 con el monto registrado', async () => {
+      const appointment = { id: 'appt-1', monto_pagado: 150 };
+      mockReq = { params: { id: 'appt-1' }, body: { monto_pagado: 150 } };
+      mockService.registerPayment.mockResolvedValue(appointment);
+
+      await controller.registerPayment(mockReq as Request, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(200);
+      expect(jsonMock).toHaveBeenCalledWith(appointment);
+      expect(mockService.registerPayment).toHaveBeenCalledWith('appt-1', 150);
+    });
+
+    it('responde 400 cuando el monto es negativo', async () => {
+      mockReq = { params: { id: 'appt-1' }, body: { monto_pagado: -1 } };
+
+      await controller.registerPayment(mockReq as Request, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(400);
+      expect(mockService.registerPayment).not.toHaveBeenCalled();
+    });
+
+    it('responde 404 cuando la cita a cobrar no existe', async () => {
+      mockReq = { params: { id: 'appt-inexistente' }, body: { monto_pagado: 120 } };
+      mockService.registerPayment.mockRejectedValue(new Error('Cita no encontrada'));
+
+      await controller.registerPayment(mockReq as Request, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(404);
+      expect(jsonMock).toHaveBeenCalledWith({ error: 'Cita no encontrada' });
+    });
+
+    it('responde 422 cuando la cita no esta en estado ATENDIDA', async () => {
+      mockReq = { params: { id: 'appt-1' }, body: { monto_pagado: 120 } };
+      mockService.registerPayment.mockRejectedValue(
+        new Error('Solo se pueden registrar cobros en citas atendidas')
+      );
+
+      await controller.registerPayment(mockReq as Request, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(422);
+      expect(jsonMock).toHaveBeenCalledWith({
+        error: 'Solo se pueden registrar cobros en citas atendidas',
+      });
+    });
+
+    it('responde 500 en fallo inesperado al registrar cobro', async () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      mockReq = { params: { id: 'appt-1' }, body: { monto_pagado: 120 } };
+      mockService.registerPayment.mockRejectedValue(new Error('Fallo crítico'));
+
+      await controller.registerPayment(mockReq as Request, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(500);
+      expect(jsonMock).toHaveBeenCalledWith({ error: 'Error interno al registrar el cobro' });
       consoleSpy.mockRestore();
     });
   });

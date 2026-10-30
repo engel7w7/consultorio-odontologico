@@ -93,10 +93,15 @@
 
 .daily-agenda .agenda-event__content {
   min-width: 0;
+  min-height: 0;
 }
 
 .daily-agenda .agenda-event__status {
   flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.daily-agenda .agenda-event button {
   white-space: nowrap;
 }
 

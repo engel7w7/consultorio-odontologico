@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { getAppointmentsQuerySchema } from '../../src/schemas/appointment.schema.js';
+import {
+  getAppointmentsQuerySchema,
+  registerPaymentSchema,
+} from '../../src/schemas/appointment.schema.js';
 
 describe('QA Unit Tests: appointment.schema (HU-04)', () => {
   it('debe validar exitosamente cuando se envía una fecha válida', () => {
@@ -49,3 +52,43 @@ describe('QA Unit Tests: appointment.schema (HU-04)', () => {
     }
   });
 });
+
+describe('QA Unit Tests: registerPaymentSchema (HU-11)', () => {
+  it('valida exitosamente un monto entero o con decimales positivo', () => {
+    const intVal = registerPaymentSchema.safeParse({ monto_pagado: 150 });
+    expect(intVal.success).toBe(true);
+
+    const decVal = registerPaymentSchema.safeParse({ monto_pagado: 180.75 });
+    expect(decVal.success).toBe(true);
+  });
+
+  it('permite un monto de cero', () => {
+    const zeroVal = registerPaymentSchema.safeParse({ monto_pagado: 0 });
+    expect(zeroVal.success).toBe(true);
+  });
+
+  it('rechaza montos negativos', () => {
+    const negVal = registerPaymentSchema.safeParse({ monto_pagado: -10 });
+    expect(negVal.success).toBe(false);
+    if (!negVal.success) {
+      expect(negVal.error.issues[0].message).toBe('El monto no puede ser negativo');
+    }
+  });
+
+  it('rechaza montos mayores al maximo permitido o no finitos', () => {
+    const maxVal = registerPaymentSchema.safeParse({ monto_pagado: 100000000 });
+    expect(maxVal.success).toBe(false);
+
+    const infVal = registerPaymentSchema.safeParse({ monto_pagado: Infinity });
+    expect(infVal.success).toBe(false);
+  });
+
+  it('rechaza valores no numericos o campos faltantes', () => {
+    const strVal = registerPaymentSchema.safeParse({ monto_pagado: 'cien' });
+    expect(strVal.success).toBe(false);
+
+    const emptyVal = registerPaymentSchema.safeParse({});
+    expect(emptyVal.success).toBe(false);
+  });
+});
+

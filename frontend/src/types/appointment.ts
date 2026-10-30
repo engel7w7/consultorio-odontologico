@@ -3,6 +3,7 @@ export type EstadoCita = 'PROGRAMADA' | 'ATENDIDA' | 'CANCELADA';
 export interface AppointmentPatient {
   id: string;
   nombre: string;
+  telefono?: string;
 }
 
 export interface Appointment {
@@ -13,6 +14,7 @@ export interface Appointment {
   fecha_inicio: string;
   fecha_fin: string;
   estado: EstadoCita;
+  monto_pagado: number | string | null;
   created_at: string;
   updated_at: string;
 }

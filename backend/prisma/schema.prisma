@@ -43,6 +43,7 @@ model Appointment {
   fecha_inicio DateTime
   fecha_fin    DateTime
   estado       EstadoCita  @default(PROGRAMADA)
+  monto_pagado Decimal?    @db.Decimal(10, 2)
   created_at   DateTime    @default(now())
   updated_at   DateTime    @updatedAt
 
@@ -105,4 +106,3 @@ model User {
 
   @@map("users")
 }
-
