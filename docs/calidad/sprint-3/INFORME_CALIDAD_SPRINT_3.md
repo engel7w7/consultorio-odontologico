@@ -66,4 +66,10 @@
 ## 4. Dictamen Final de QA
 Se han verificado satisfactoriamente los cambios en las tres ramas remotas (`feature/HU-10_historial-tratamientos`, `feature/HU-11_registro-cobro` y `feature/HU-13_boton-whatsapp`). Todas las pruebas unitarias, de integración, de rendimiento y E2E se encuentran en verde con coberturas superiores al 97%.  
 
+### Evidencias (carpeta `Evidencias/`)
+- `Doc QA.pdf`: Documento oficial consolidado de calidad, trazabilidad y resultados del Sprint 3.
+- `grafico-cobertura-sprint3.png`: Cobertura global de código backend en Vitest (>97% en todas las métricas).
+- `grafico-rendimiento-sprint3.png`: Tiempos de respuesta p95 frente al umbral de 2000 ms bajo 50 usuarios concurrentes.
+- `grafico-niveles-sqap-sprint3.png`: Cumplimiento integral de los 6 niveles de prueba según el estándar SQAP.
+
 **Veredicto:** **APROBADO PARA MERGE A DEVELOP**.
