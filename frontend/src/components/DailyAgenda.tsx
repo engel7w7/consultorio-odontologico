@@ -392,7 +392,7 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
           <div className="agenda-event__content flex flex-col justify-start gap-1">
             {(estado === 'ATENDIDA' || montoPagado != null || whatsappUrl) && (
               <div className="agenda-event__actions flex min-w-0 flex-wrap items-center gap-1">
-                {estado === 'ATENDIDA' && (
+                {estado === 'ATENDIDA' && montoPagado == null && (
                   <span
                     className="agenda-event__status inline-flex shrink-0 items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-600 text-white text-[11px] font-semibold"
                     aria-label="Cita atendida"
@@ -418,6 +418,11 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
                   >
                     {montoPagado == null ? 'Registrar cobro' : `Cobrado Bs ${String(montoPagado)}`}
                   </button>
+                )}
+                {estado === 'ATENDIDA' && montoPagado != null && (
+                  <span className="inline-flex shrink-0 items-center rounded bg-slate-200 px-1.5 py-0.5 text-[11px] font-semibold text-slate-700">
+                    Cobrado Bs {String(montoPagado)}
+                  </span>
                 )}
                 {whatsappUrl && (
                   <a
@@ -475,7 +480,7 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
         )}
         {isShort && (estado === 'ATENDIDA' || whatsappUrl) && (
           <div className="flex flex-wrap gap-1 mt-1">
-            {estado === 'ATENDIDA' && (
+            {estado === 'ATENDIDA' && montoPagado == null && (
               <button
                 type="button"
                 className="inline-flex max-w-full self-start items-center gap-1 whitespace-nowrap text-[11px] px-2 py-0.5 rounded bg-blue-600 text-white hover:bg-blue-700"
