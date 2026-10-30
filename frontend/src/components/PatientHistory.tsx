@@ -96,11 +96,17 @@ export const PatientHistory: React.FC = () => {
     }
   }, []);
 
-  useEffect(() => {
-    if (selectedPatientId) {
-      fetchHistory(selectedPatientId, orden);
-    }
-  }, [selectedPatientId, orden, fetchHistory]);
+  // La carga se dispara desde los eventos del usuario (no desde un useEffect)
+  // para evitar setState síncrono dentro de un efecto y renders en cascada.
+  const handleSelectPatient = (patientId: string) => {
+    setSelectedPatientId(patientId);
+    void fetchHistory(patientId, orden);
+  };
+
+  const handleChangeOrden = (nuevoOrden: OrdenHistorial) => {
+    setOrden(nuevoOrden);
+    if (selectedPatientId) void fetchHistory(selectedPatientId, nuevoOrden);
+  };
 
   const selectedPatient = patients.find((p) => p.id === selectedPatientId) || historial?.patient;
 
@@ -142,7 +148,7 @@ export const PatientHistory: React.FC = () => {
                 <button
                   key={p.id}
                   type="button"
-                  onClick={() => setSelectedPatientId(p.id)}
+                  onClick={() => handleSelectPatient(p.id)}
                   className={`w-full p-3 text-left transition ${
                     isSelected
                       ? 'bg-blue-50/80 border-l-4 border-blue-600'
@@ -190,7 +196,7 @@ export const PatientHistory: React.FC = () => {
                 <select
                   id="orden-historial"
                   value={orden}
-                  onChange={(e) => setOrden(e.target.value as OrdenHistorial)}
+                  onChange={(e) => handleChangeOrden(e.target.value as OrdenHistorial)}
                   className="py-2 px-3 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs font-semibold focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
                 >
                   <option value="desc">Más reciente primero</option>
