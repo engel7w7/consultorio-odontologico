@@ -518,7 +518,7 @@ export const MedicalHistory: React.FC = () => {
                   <div>
                     {isCritical ? (
                       <span className="inline-flex items-center text-[11px] font-bold px-2.5 py-1 rounded-full bg-rose-100 text-rose-800 border border-rose-200">
-                        ⚠ Antecedentes críticos
+                        Antecedentes críticos
                       </span>
                     ) : !hasHistory ? (
                       <span className="inline-flex items-center text-[11px] font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
@@ -622,8 +622,8 @@ export const MedicalHistory: React.FC = () => {
                   Alerta Crítica Pre-Atención Odontológica
                 </span>
               </div>
-              <p className="font-bold text-sm sm:text-base leading-snug pl-7">
-                ⚠ {alertas.join(' · ')}
+              <p className="font-bold text-sm sm:text-base leading-snug pl-7 break-words">
+                {alertas.join(' · ')}
               </p>
               <p className="text-[11px] text-rose-700 pl-7">
                 Revise cuidadosamente las dosis de anestesia local, evite alérgenos y considere profilaxis médica previa.
@@ -1023,9 +1023,9 @@ export const MedicalHistory: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowAuditHistory((prev) => !prev)}
-              className="w-full flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 transition text-left"
+              className="w-full flex items-center justify-between gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 transition text-left"
             >
-              <div className="flex items-center space-x-2">
+              <div className="flex min-w-0 items-center gap-2">
                 <svg
                   className="w-4 h-4 text-slate-500"
                   fill="none"
@@ -1039,10 +1039,10 @@ export const MedicalHistory: React.FC = () => {
                     d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-800">
+                <span className="min-w-0 text-xs font-bold uppercase tracking-wider text-slate-800 break-words">
                   Historial de Cambios y Auditoría Clínica
                 </span>
-                <span className="text-[11px] font-semibold px-2 py-0.5 bg-slate-200 text-slate-700 rounded-full">
+                <span className="shrink-0 text-[11px] font-semibold px-2 py-0.5 bg-slate-200 text-slate-700 rounded-full">
                   {auditRecords.length}
                 </span>
               </div>
