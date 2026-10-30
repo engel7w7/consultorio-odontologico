@@ -39,3 +39,9 @@ export const updateAppointmentStatusSchema = z.object({
 });
 
 export type UpdateAppointmentStatusInput = z.infer<typeof updateAppointmentStatusSchema>;
+
+export const registerPaymentSchema = z.object({
+  monto_pagado: z.number().finite().min(0, 'El monto no puede ser negativo').max(99999999.99),
+});
+
+export type RegisterPaymentInput = z.infer<typeof registerPaymentSchema>;

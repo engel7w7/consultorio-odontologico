@@ -152,4 +152,45 @@ describe('QA Integration Tests - Rutas de Citas y Agenda (HU-04)', () => {
 
     expect(res.status).toBe(400);
   });
+
+  it('PATCH /api/appointments/:id/payment debe registrar el monto pagado', async () => {
+    vi.spyOn(prisma.appointment, 'findUnique').mockResolvedValue({
+      id: 'appt-1',
+      estado: 'ATENDIDA',
+    } as any);
+    vi.spyOn(prisma.appointment, 'update').mockResolvedValue({
+      id: 'appt-1',
+      monto_pagado: 150,
+      patient: { id: 'p-1', nombre: 'Ana', telefono: '71234567' },
+    } as any);
+
+    const res = await request(app)
+      .patch('/api/appointments/appt-1/payment')
+      .send({ monto_pagado: 150 });
+
+    expect(res.status).toBe(200);
+    expect(res.body.monto_pagado).toBe(150);
+  });
+
+  it('PATCH /api/appointments/:id/payment debe rechazar el cobro con 422 si la cita no esta en estado ATENDIDA', async () => {
+    vi.spyOn(prisma.appointment, 'findUnique').mockResolvedValue({
+      id: 'appt-1',
+      estado: 'PROGRAMADA',
+    } as any);
+
+    const res = await request(app)
+      .patch('/api/appointments/appt-1/payment')
+      .send({ monto_pagado: 150 });
+
+    expect(res.status).toBe(422);
+    expect(res.body.error).toBe('Solo se pueden registrar cobros en citas atendidas');
+  });
+
+  it('PATCH /api/appointments/:id/payment debe rechazar montos negativos', async () => {
+    const res = await request(app)
+      .patch('/api/appointments/appt-1/payment')
+      .send({ monto_pagado: -1 });
+
+    expect(res.status).toBe(400);
+  });
 });

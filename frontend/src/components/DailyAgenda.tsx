@@ -5,6 +5,7 @@ import esLocale from '@fullcalendar/core/locales/es';
 import type { DatesSetArg, EventContentArg } from '@fullcalendar/core';
 import type { Appointment, EstadoCita, CreateAppointmentPayload } from '../types/appointment';
 import type { Patient } from '../types/patient';
+import { buildWhatsAppReminderUrl } from '../utils/whatsapp.utils';
 import './DailyAgenda.css';
 
 interface DailyAgendaProps {
@@ -31,6 +32,9 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
   const [submittingAppt, setSubmittingAppt] = useState<boolean>(false);
   const [modalError, setModalError] = useState<string | null>(null);
   const [modalSuccess, setModalSuccess] = useState<string | null>(null);
+  const [paymentAppointment, setPaymentAppointment] = useState<Appointment | null>(null);
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [submittingPayment, setSubmittingPayment] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -231,8 +235,11 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
       textColor: '#0f172a',
       extendedProps: {
         patientName: appt.patient.nombre,
+        patientPhone: appt.patient.telefono,
+        montoPagado: appt.monto_pagado,
         estado: appt.estado,
         motivo: appt.motivo,
+        fechaInicio: appt.fecha_inicio,
       },
     }));
   }, [appointments]);
@@ -315,10 +322,13 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
   };
 
   const renderEventContent = (eventInfo: EventContentArg) => {
-    const { patientName, estado, motivo } = eventInfo.event.extendedProps as {
+    const { patientName, patientPhone, montoPagado, estado, motivo, fechaInicio } = eventInfo.event.extendedProps as {
       patientName: string;
+      patientPhone?: string;
+      montoPagado: number | string | null;
       estado: EstadoCita;
       motivo: string;
+      fechaInicio: string;
     };
 
     const startDate = eventInfo.event.start;
@@ -344,6 +354,7 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
           ? 'Atendida'
           : 'Cancelada';
     const fullTooltip = `${patientName} (${timeRange}) · ${statusLabel}${motivo ? ` · ${motivo}` : ''}`;
+    const whatsappUrl = buildWhatsAppReminderUrl(patientPhone || '', patientName, fechaInicio, motivo);
 
     let containerStyles =
       'bg-white border-l-[3px] border-l-sky-600 border-y border-r border-slate-200/90';
@@ -378,14 +389,49 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
             </span>
           </div>
         ) : (
-          <div className="agenda-event__content flex flex-col justify-center gap-0.5 overflow-hidden">
-            {estado === 'ATENDIDA' && (
-              <span
-                className="agenda-event__status self-start inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-semibold"
-                aria-label="Cita atendida"
-              >
-                ✓ Atendida
-              </span>
+          <div className="agenda-event__content flex flex-col justify-start gap-0.5 overflow-hidden">
+            {(estado === 'ATENDIDA' || montoPagado != null || whatsappUrl) && (
+              <div className="flex min-w-0 items-center gap-1">
+                {estado === 'ATENDIDA' && (
+                  <span
+                    className="agenda-event__status inline-flex shrink-0 items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-semibold"
+                    aria-label="Cita atendida"
+                  >
+                    ✓ Atendida
+                  </span>
+                )}
+                {estado === 'ATENDIDA' && (
+                  <button
+                    type="button"
+                    className="inline-flex min-w-0 max-w-full items-center gap-1 rounded bg-blue-600 px-1.5 py-0.5 text-[10px] text-white hover:bg-blue-700"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      const appointment = appointments.find((item) => item.id === eventInfo.event.id);
+                      if (appointment) {
+                        setPaymentAppointment(appointment);
+                        setPaymentAmount(
+                          appointment.monto_pagado === null ? '' : String(appointment.monto_pagado)
+                        );
+                      }
+                    }}
+                    aria-label={`Registrar cobro de ${patientName}`}
+                  >
+                    {montoPagado == null ? 'Registrar cobro' : `Cobrado Bs ${String(montoPagado)}`}
+                  </button>
+                )}
+                {whatsappUrl && (
+                  <a
+                    href={whatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-w-0 items-center gap-1 rounded bg-green-600 px-1.5 py-0.5 text-[10px] text-white hover:bg-green-700"
+                    onClick={(event) => event.stopPropagation()}
+                    aria-label={`Enviar recordatorio de WhatsApp a ${patientName}`}
+                  >
+                    WhatsApp
+                  </a>
+                )}
+              </div>
             )}
             <div className={`text-xs truncate ${nameStyles}`}>
               {patientName}
@@ -427,8 +473,77 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
             </button>
           </div>
         )}
+        {isShort && (estado === 'ATENDIDA' || whatsappUrl) && (
+          <div className="flex flex-wrap gap-1 mt-1">
+            {estado === 'ATENDIDA' && (
+              <button
+                type="button"
+                className="inline-flex max-w-full self-start items-center gap-1 whitespace-nowrap text-[10px] px-1.5 py-0.5 rounded bg-blue-600 text-white hover:bg-blue-700"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  const appointment = appointments.find((item) => item.id === eventInfo.event.id);
+                  if (appointment) {
+                    setPaymentAppointment(appointment);
+                    setPaymentAmount(
+                      appointment.monto_pagado === null ? '' : String(appointment.monto_pagado)
+                    );
+                  }
+                }}
+                aria-label={`Registrar cobro de ${patientName}`}
+              >
+                {montoPagado == null ? 'Registrar cobro' : `Cobrado Bs ${String(montoPagado)}`}
+              </button>
+            )}
+            {whatsappUrl && (
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex self-start items-center gap-1 whitespace-nowrap text-[10px] px-1.5 py-0.5 rounded bg-green-600 text-white hover:bg-green-700"
+                onClick={(event) => event.stopPropagation()}
+                aria-label={`Enviar recordatorio de WhatsApp a ${patientName}`}
+              >
+                WhatsApp
+              </a>
+            )}
+          </div>
+        )}
       </div>
     );
+  };
+
+  const handleRegisterPayment = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const amount = Number(paymentAmount);
+    if (!Number.isFinite(amount) || amount < 0 || !paymentAppointment) {
+      setError('Ingrese un monto válido igual o mayor a 0');
+      return;
+    }
+
+    setSubmittingPayment(true);
+    try {
+      const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, '');
+      const response = await fetch(
+        `${apiUrl}/api/appointments/${paymentAppointment.id}/payment`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ monto_pagado: amount }),
+        }
+      );
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Error al registrar el cobro');
+      setAppointments((current) =>
+        current.map((appointment) => (appointment.id === data.id ? data : appointment))
+      );
+      setPaymentAppointment(null);
+      setPaymentAmount('');
+      setError(null);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Error al registrar el cobro');
+    } finally {
+      setSubmittingPayment(false);
+    }
   };
 
   return (
@@ -563,6 +678,49 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
         </div>
       </div>
 
+      {paymentAppointment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4">
+          <form
+            onSubmit={handleRegisterPayment}
+            className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 space-y-4"
+          >
+            <div>
+              <h3 className="text-base font-bold text-slate-900">Registrar cobro</h3>
+              <p className="text-sm text-slate-500">{paymentAppointment.patient.nombre}</p>
+            </div>
+            <label className="block text-sm font-medium text-slate-700">
+              Monto pagado (Bs)
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                required
+                value={paymentAmount}
+                onChange={(event) => setPaymentAmount(event.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </label>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setPaymentAppointment(null)}
+                disabled={submittingPayment}
+                className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={submittingPayment}
+                className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+              >
+                {submittingPayment ? 'Guardando...' : 'Guardar cobro'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
       {/* Modal HU-08: Agendar Cita con Alerta Roja Bloqueante para Extracción */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
@@ -570,7 +728,7 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
             <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm">
-                  📅
+                  <span className="w-2 h-2 rounded-full bg-blue-600" aria-hidden="true"></span>
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-slate-900">Agendar Nueva Cita</h3>
@@ -605,7 +763,7 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
                   >
                     {patients.map((p) => (
                       <option key={p.id} value={p.id}>
-                        {p.nombre} {p.examenes_sangre_validados ? '— (🟢 Luz Verde / Exámenes Validados)' : '— (🔴 Sin Exámenes Validados)'}
+                        {p.nombre} {p.examenes_sangre_validados ? '— (Luz Verde / Exámenes Validados)' : '— (Sin Exámenes Validados)'}
                       </option>
                     ))}
                   </select>
@@ -696,7 +854,7 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
               {isSafetyBlocked && (
                 <div className="p-4 rounded-xl bg-rose-600 text-white shadow-md border-2 border-rose-700 space-y-2 animate-in fade-in slide-in-from-top-2 duration-150">
                   <div className="flex items-center gap-2">
-                    <span className="text-xl">🚨</span>
+                    <span className="w-2 h-2 rounded-full bg-rose-100" aria-hidden="true"></span>
                     <h4 className="font-bold text-sm tracking-wide uppercase text-white">
                       Alerta Roja Bloqueante de Seguridad Clínica
                     </h4>
@@ -719,7 +877,6 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
                         }}
                         className="w-full py-1.5 px-3 bg-white text-rose-700 hover:bg-rose-50 font-bold text-xs rounded-lg transition shadow-xs flex items-center justify-center gap-1.5"
                       >
-                        <span>🛡️</span>
                         <span>Ir a Validar Exámenes de Sangre para este paciente</span>
                       </button>
                     </div>
@@ -806,7 +963,6 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
                     'Agendando…'
                   ) : isSafetyBlocked ? (
                     <>
-                      <span>🚫</span>
                       <span>Bloqueado por Seguridad Clínica</span>
                     </>
                   ) : (
@@ -821,4 +977,3 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
     </div>
   );
 };
-
