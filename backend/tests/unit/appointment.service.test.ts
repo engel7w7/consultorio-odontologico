@@ -8,6 +8,8 @@ describe('QA Unit Tests: AppointmentService (HU-04 y HU-08)', () => {
     appointment: {
       findMany: ReturnType<typeof vi.fn>;
       create: ReturnType<typeof vi.fn>;
+      findUnique: ReturnType<typeof vi.fn>;
+      update: ReturnType<typeof vi.fn>;
     };
     patient: {
       findUnique: ReturnType<typeof vi.fn>;
@@ -20,6 +22,8 @@ describe('QA Unit Tests: AppointmentService (HU-04 y HU-08)', () => {
       appointment: {
         findMany: vi.fn(),
         create: vi.fn(),
+        findUnique: vi.fn(),
+        update: vi.fn(),
       },
       patient: {
         findUnique: vi.fn(),
@@ -101,6 +105,7 @@ describe('QA Unit Tests: AppointmentService (HU-04 y HU-08)', () => {
         nombre: 'Juan Pérez',
         examenes_sangre_validados: false,
       });
+
       mockPrisma.appointment.create.mockResolvedValue({
         id: 'appt-1',
         patient_id: 'p-1',
@@ -204,6 +209,53 @@ describe('QA Unit Tests: AppointmentService (HU-04 y HU-08)', () => {
         })
       ).rejects.toMatchObject({
         code: 'EXTRACTION_BLOOD_EXAMS_REQUIRED',
+      });
+    });
+
+    describe('registerPayment (HU-11)', () => {
+      it('registra el monto pagado de una cita atendida', async () => {
+        mockPrisma.appointment.findUnique.mockResolvedValue({ id: 'appt-1', estado: 'ATENDIDA' });
+        mockPrisma.appointment.update.mockResolvedValue({
+          id: 'appt-1',
+          monto_pagado: 150,
+          estado: 'ATENDIDA',
+        });
+
+        const result = await service.registerPayment('appt-1', 150);
+
+        expect(result).toEqual({ id: 'appt-1', monto_pagado: 150, estado: 'ATENDIDA' });
+        expect(mockPrisma.appointment.update).toHaveBeenCalledWith({
+          where: { id: 'appt-1' },
+          data: { monto_pagado: 150 },
+          include: {
+            patient: {
+              select: {
+                id: true,
+                nombre: true,
+                telefono: true,
+                examenes_sangre_validados: true,
+              },
+            },
+          },
+        });
+      });
+
+      it('rechaza el cobro si la cita no esta en estado ATENDIDA', async () => {
+        mockPrisma.appointment.findUnique.mockResolvedValue({ id: 'appt-1', estado: 'PROGRAMADA' });
+
+        await expect(service.registerPayment('appt-1', 150)).rejects.toThrow(
+          'Solo se pueden registrar cobros en citas atendidas'
+        );
+        expect(mockPrisma.appointment.update).not.toHaveBeenCalled();
+      });
+
+      it('rechaza el cobro si la cita no existe', async () => {
+        mockPrisma.appointment.findUnique.mockResolvedValue(null);
+
+        await expect(service.registerPayment('inexistente', 50)).rejects.toThrow(
+          'Cita no encontrada'
+        );
+        expect(mockPrisma.appointment.update).not.toHaveBeenCalled();
       });
     });
   });

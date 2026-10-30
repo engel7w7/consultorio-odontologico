@@ -101,6 +101,10 @@
   white-space: nowrap;
 }
 
+.daily-agenda .agenda-event button {
+  white-space: nowrap;
+}
+
 .daily-agenda .agenda-event__time {
   display: block;
   white-space: nowrap;
