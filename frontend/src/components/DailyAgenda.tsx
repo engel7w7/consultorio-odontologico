@@ -5,6 +5,7 @@ import esLocale from '@fullcalendar/core/locales/es';
 import type { DatesSetArg, EventContentArg } from '@fullcalendar/core';
 import type { Appointment, EstadoCita, CreateAppointmentPayload } from '../types/appointment';
 import type { Patient } from '../types/patient';
+import { buildWhatsAppReminderUrl } from '../utils/whatsapp.utils';
 import './DailyAgenda.css';
 
 interface DailyAgendaProps {
@@ -234,9 +235,11 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
       textColor: '#0f172a',
       extendedProps: {
         patientName: appt.patient.nombre,
+        patientPhone: appt.patient.telefono,
         montoPagado: appt.monto_pagado,
         estado: appt.estado,
         motivo: appt.motivo,
+        fechaInicio: appt.fecha_inicio,
       },
     }));
   }, [appointments]);
@@ -319,11 +322,13 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
   };
 
   const renderEventContent = (eventInfo: EventContentArg) => {
-    const { patientName, montoPagado, estado, motivo } = eventInfo.event.extendedProps as {
+    const { patientName, patientPhone, montoPagado, estado, motivo, fechaInicio } = eventInfo.event.extendedProps as {
       patientName: string;
+      patientPhone?: string;
       montoPagado: number | string | null;
       estado: EstadoCita;
       motivo: string;
+      fechaInicio: string;
     };
 
     const startDate = eventInfo.event.start;
@@ -349,6 +354,7 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
           ? 'Atendida'
           : 'Cancelada';
     const fullTooltip = `${patientName} (${timeRange}) · ${statusLabel}${motivo ? ` · ${motivo}` : ''}`;
+    const whatsappUrl = buildWhatsAppReminderUrl(patientPhone || '', patientName, fechaInicio, motivo);
 
     let containerStyles =
       'bg-white border-l-[3px] border-l-sky-600 border-y border-r border-slate-200/90';
@@ -384,7 +390,7 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
           </div>
         ) : (
           <div className="agenda-event__content flex flex-col justify-start gap-0.5 overflow-hidden">
-            {(estado === 'ATENDIDA' || montoPagado != null) && (
+            {(estado === 'ATENDIDA' || montoPagado != null || whatsappUrl) && (
               <div className="flex min-w-0 items-center gap-1">
                 {estado === 'ATENDIDA' && (
                   <span
@@ -412,6 +418,18 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
                   >
                     {montoPagado == null ? 'Registrar cobro' : `Cobrado Bs ${String(montoPagado)}`}
                   </button>
+                )}
+                {whatsappUrl && (
+                  <a
+                    href={whatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-w-0 items-center gap-1 rounded bg-green-600 px-1.5 py-0.5 text-[10px] text-white hover:bg-green-700"
+                    onClick={(event) => event.stopPropagation()}
+                    aria-label={`Enviar recordatorio de WhatsApp a ${patientName}`}
+                  >
+                    WhatsApp
+                  </a>
                 )}
               </div>
             )}
@@ -455,24 +473,40 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
             </button>
           </div>
         )}
-        {isShort && estado === 'ATENDIDA' && (
-          <button
-            type="button"
-            className="inline-flex max-w-full self-start items-center gap-1 mt-1 whitespace-nowrap text-[10px] px-1.5 py-0.5 rounded bg-blue-600 text-white hover:bg-blue-700"
-            onClick={(event) => {
-              event.stopPropagation();
-              const appointment = appointments.find((item) => item.id === eventInfo.event.id);
-              if (appointment) {
-                setPaymentAppointment(appointment);
-                setPaymentAmount(
-                  appointment.monto_pagado === null ? '' : String(appointment.monto_pagado)
-                );
-              }
-            }}
-            aria-label={`Registrar cobro de ${patientName}`}
-          >
-            {montoPagado == null ? 'Registrar cobro' : `Cobrado Bs ${String(montoPagado)}`}
-          </button>
+        {isShort && (estado === 'ATENDIDA' || whatsappUrl) && (
+          <div className="flex flex-wrap gap-1 mt-1">
+            {estado === 'ATENDIDA' && (
+              <button
+                type="button"
+                className="inline-flex max-w-full self-start items-center gap-1 whitespace-nowrap text-[10px] px-1.5 py-0.5 rounded bg-blue-600 text-white hover:bg-blue-700"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  const appointment = appointments.find((item) => item.id === eventInfo.event.id);
+                  if (appointment) {
+                    setPaymentAppointment(appointment);
+                    setPaymentAmount(
+                      appointment.monto_pagado === null ? '' : String(appointment.monto_pagado)
+                    );
+                  }
+                }}
+                aria-label={`Registrar cobro de ${patientName}`}
+              >
+                {montoPagado == null ? 'Registrar cobro' : `Cobrado Bs ${String(montoPagado)}`}
+              </button>
+            )}
+            {whatsappUrl && (
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex self-start items-center gap-1 whitespace-nowrap text-[10px] px-1.5 py-0.5 rounded bg-green-600 text-white hover:bg-green-700"
+                onClick={(event) => event.stopPropagation()}
+                aria-label={`Enviar recordatorio de WhatsApp a ${patientName}`}
+              >
+                WhatsApp
+              </a>
+            )}
+          </div>
         )}
       </div>
     );

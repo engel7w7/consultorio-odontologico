@@ -79,6 +79,7 @@ export class AppointmentService {
           select: {
             id: true,
             nombre: true,
+            telefono: true,
             examenes_sangre_validados: true,
           },
         },
