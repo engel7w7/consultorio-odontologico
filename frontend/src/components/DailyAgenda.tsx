@@ -391,7 +391,7 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
         ) : (
           <div className="agenda-event__content flex flex-col justify-start gap-0.5 overflow-hidden">
             {(estado === 'ATENDIDA' || montoPagado != null || whatsappUrl) && (
-              <div className="flex min-w-0 items-center gap-1">
+              <div className="agenda-event__actions flex min-w-0 flex-wrap items-center gap-1">
                 {estado === 'ATENDIDA' && (
                   <span
                     className="agenda-event__status inline-flex shrink-0 items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-semibold"
@@ -403,7 +403,7 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
                 {estado === 'ATENDIDA' && (
                   <button
                     type="button"
-                    className="inline-flex min-w-0 max-w-full items-center gap-1 rounded bg-blue-600 px-1.5 py-0.5 text-[10px] text-white hover:bg-blue-700"
+                    className="inline-flex shrink-0 items-center gap-1 rounded bg-blue-600 px-1.5 py-0.5 text-[10px] text-white hover:bg-blue-700"
                     onClick={(event) => {
                       event.stopPropagation();
                       const appointment = appointments.find((item) => item.id === eventInfo.event.id);
@@ -424,7 +424,7 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
                     href={whatsappUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex min-w-0 items-center gap-1 rounded bg-green-600 px-1.5 py-0.5 text-[10px] text-white hover:bg-green-700"
+                    className="inline-flex shrink-0 items-center gap-1 rounded bg-green-600 px-1.5 py-0.5 text-[10px] text-white hover:bg-green-700"
                     onClick={(event) => event.stopPropagation()}
                     aria-label={`Enviar recordatorio de WhatsApp a ${patientName}`}
                   >
