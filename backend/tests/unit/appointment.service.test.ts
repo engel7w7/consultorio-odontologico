@@ -249,6 +249,19 @@ describe('QA Unit Tests: AppointmentService (HU-04 y HU-08)', () => {
         expect(mockPrisma.appointment.update).not.toHaveBeenCalled();
       });
 
+      it('rechaza modificar un cobro ya registrado', async () => {
+        mockPrisma.appointment.findUnique.mockResolvedValue({
+          id: 'appt-1',
+          estado: 'ATENDIDA',
+          monto_pagado: 150,
+        });
+
+        await expect(service.registerPayment('appt-1', 200)).rejects.toThrow(
+          'El cobro de la cita ya fue registrado'
+        );
+        expect(mockPrisma.appointment.update).not.toHaveBeenCalled();
+      });
+
       it('rechaza el cobro si la cita no existe', async () => {
         mockPrisma.appointment.findUnique.mockResolvedValue(null);
 
