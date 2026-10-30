@@ -694,7 +694,7 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
             <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm">
-                  📅
+                  <span className="w-2 h-2 rounded-full bg-blue-600" aria-hidden="true"></span>
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-slate-900">Agendar Nueva Cita</h3>
@@ -729,7 +729,7 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
                   >
                     {patients.map((p) => (
                       <option key={p.id} value={p.id}>
-                        {p.nombre} {p.examenes_sangre_validados ? '— (🟢 Luz Verde / Exámenes Validados)' : '— (🔴 Sin Exámenes Validados)'}
+                        {p.nombre} {p.examenes_sangre_validados ? '— (Luz Verde / Exámenes Validados)' : '— (Sin Exámenes Validados)'}
                       </option>
                     ))}
                   </select>
@@ -820,7 +820,7 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
               {isSafetyBlocked && (
                 <div className="p-4 rounded-xl bg-rose-600 text-white shadow-md border-2 border-rose-700 space-y-2 animate-in fade-in slide-in-from-top-2 duration-150">
                   <div className="flex items-center gap-2">
-                    <span className="text-xl">🚨</span>
+                    <span className="w-2 h-2 rounded-full bg-rose-100" aria-hidden="true"></span>
                     <h4 className="font-bold text-sm tracking-wide uppercase text-white">
                       Alerta Roja Bloqueante de Seguridad Clínica
                     </h4>
@@ -843,7 +843,6 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
                         }}
                         className="w-full py-1.5 px-3 bg-white text-rose-700 hover:bg-rose-50 font-bold text-xs rounded-lg transition shadow-xs flex items-center justify-center gap-1.5"
                       >
-                        <span>🛡️</span>
                         <span>Ir a Validar Exámenes de Sangre para este paciente</span>
                       </button>
                     </div>
@@ -930,7 +929,6 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
                     'Agendando…'
                   ) : isSafetyBlocked ? (
                     <>
-                      <span>🚫</span>
                       <span>Bloqueado por Seguridad Clínica</span>
                     </>
                   ) : (

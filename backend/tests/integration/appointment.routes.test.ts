@@ -154,7 +154,10 @@ describe('QA Integration Tests - Rutas de Citas y Agenda (HU-04)', () => {
   });
 
   it('PATCH /api/appointments/:id/payment debe registrar el monto pagado', async () => {
-    vi.spyOn(prisma.appointment, 'findUnique').mockResolvedValue({ id: 'appt-1' } as any);
+    vi.spyOn(prisma.appointment, 'findUnique').mockResolvedValue({
+      id: 'appt-1',
+      estado: 'ATENDIDA',
+    } as any);
     vi.spyOn(prisma.appointment, 'update').mockResolvedValue({
       id: 'appt-1',
       monto_pagado: 150,
@@ -191,4 +194,3 @@ describe('QA Integration Tests - Rutas de Citas y Agenda (HU-04)', () => {
     expect(res.status).toBe(400);
   });
 });
-

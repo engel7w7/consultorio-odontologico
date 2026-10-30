@@ -119,6 +119,10 @@ export class AppointmentService {
       throw new Error('Cita no encontrada');
     }
 
+    if (appointment.estado !== 'ATENDIDA') {
+      throw new Error('Solo se pueden registrar cobros en citas atendidas');
+    }
+
     return await this.prisma.appointment.update({
       where: { id: appointmentId },
       data: { monto_pagado: montoPagado },

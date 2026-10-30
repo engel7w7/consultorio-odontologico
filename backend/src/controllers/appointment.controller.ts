@@ -122,6 +122,12 @@ export class AppointmentController {
       if (error instanceof Error && error.message === 'Cita no encontrada') {
         return res.status(404).json({ error: error.message });
       }
+      if (
+        error instanceof Error &&
+        error.message === 'Solo se pueden registrar cobros en citas atendidas'
+      ) {
+        return res.status(422).json({ error: error.message });
+      }
       console.error('Error al registrar el cobro de la cita:', error);
       return res.status(500).json({ error: 'Error interno al registrar el cobro' });
     }
