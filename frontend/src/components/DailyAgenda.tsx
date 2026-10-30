@@ -349,7 +349,7 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
           ? 'Atendida'
           : 'Cancelada';
     const fullTooltip = `${patientName} (${timeRange}) · ${statusLabel}${motivo ? ` · ${motivo}` : ''}`;
-    const whatsappUrl = buildWhatsAppReminderUrl(patientPhone, patientName, fechaInicio, motivo);
+    const whatsappUrl = buildWhatsAppReminderUrl(patientPhone || '', patientName, fechaInicio, motivo);
 
     let containerStyles =
       'bg-white border-l-[3px] border-l-sky-600 border-y border-r border-slate-200/90';
