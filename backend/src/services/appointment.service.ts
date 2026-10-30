@@ -124,6 +124,10 @@ export class AppointmentService {
       throw new Error('Solo se pueden registrar cobros en citas atendidas');
     }
 
+    if (appointment.monto_pagado != null) {
+      throw new Error('El cobro de la cita ya fue registrado');
+    }
+
     return await this.prisma.appointment.update({
       where: { id: appointmentId },
       data: { monto_pagado: montoPagado },

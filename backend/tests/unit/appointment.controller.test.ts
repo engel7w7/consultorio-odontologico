@@ -373,6 +373,20 @@ describe('QA Unit Tests: AppointmentController (HU-04)', () => {
       });
     });
 
+    it('responde 422 cuando el cobro ya fue registrado', async () => {
+      mockReq = { params: { id: 'appt-1' }, body: { monto_pagado: 200 } };
+      mockService.registerPayment.mockRejectedValue(
+        new Error('El cobro de la cita ya fue registrado')
+      );
+
+      await controller.registerPayment(mockReq as Request, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(422);
+      expect(jsonMock).toHaveBeenCalledWith({
+        error: 'El cobro de la cita ya fue registrado',
+      });
+    });
+
     it('responde 500 en fallo inesperado al registrar cobro', async () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       mockReq = { params: { id: 'appt-1' }, body: { monto_pagado: 120 } };

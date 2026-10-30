@@ -124,7 +124,8 @@ export class AppointmentController {
       }
       if (
         error instanceof Error &&
-        error.message === 'Solo se pueden registrar cobros en citas atendidas'
+        (error.message === 'Solo se pueden registrar cobros en citas atendidas' ||
+          error.message === 'El cobro de la cita ya fue registrado')
       ) {
         return res.status(422).json({ error: error.message });
       }

@@ -375,7 +375,7 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
 
     return (
       <div
-        className={`agenda-event w-full h-full p-1.5 rounded-md overflow-hidden flex flex-col justify-center select-none text-left leading-tight ${containerStyles}`}
+        className={`agenda-event w-full h-full p-2 rounded-md overflow-hidden flex flex-col justify-start select-none text-left leading-tight ${containerStyles}`}
         title={fullTooltip}
         aria-label={fullTooltip}
       >
@@ -384,17 +384,17 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
             <span className={`text-[11px] tabular-nums font-normal ${metaStyles}`}>
               {timeRange}
             </span>
-            <span className={`text-xs truncate ${nameStyles}`}>
+            <span className={`text-[13px] truncate ${nameStyles}`}>
               {patientName}
             </span>
           </div>
         ) : (
-          <div className="agenda-event__content flex flex-col justify-start gap-0.5 overflow-hidden">
+          <div className="agenda-event__content flex flex-col justify-start gap-1">
             {(estado === 'ATENDIDA' || montoPagado != null || whatsappUrl) && (
               <div className="agenda-event__actions flex min-w-0 flex-wrap items-center gap-1">
-                {estado === 'ATENDIDA' && (
+                {estado === 'ATENDIDA' && montoPagado == null && (
                   <span
-                    className="agenda-event__status inline-flex shrink-0 items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-semibold"
+                    className="agenda-event__status inline-flex shrink-0 items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-600 text-white text-[11px] font-semibold"
                     aria-label="Cita atendida"
                   >
                     ✓ Atendida
@@ -403,7 +403,7 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
                 {estado === 'ATENDIDA' && (
                   <button
                     type="button"
-                    className="inline-flex shrink-0 items-center gap-1 rounded bg-blue-600 px-1.5 py-0.5 text-[10px] text-white hover:bg-blue-700"
+                    className="inline-flex min-w-0 max-w-full items-center gap-1 rounded bg-blue-600 px-1.5 py-0.5 text-[11px] text-white hover:bg-blue-700"
                     onClick={(event) => {
                       event.stopPropagation();
                       const appointment = appointments.find((item) => item.id === eventInfo.event.id);
@@ -419,12 +419,17 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
                     {montoPagado == null ? 'Registrar cobro' : `Cobrado Bs ${String(montoPagado)}`}
                   </button>
                 )}
+                {estado === 'ATENDIDA' && montoPagado != null && (
+                  <span className="inline-flex shrink-0 items-center rounded bg-slate-200 px-1.5 py-0.5 text-[11px] font-semibold text-slate-700">
+                    Cobrado Bs {String(montoPagado)}
+                  </span>
+                )}
                 {whatsappUrl && (
                   <a
                     href={whatsappUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex shrink-0 items-center gap-1 rounded bg-green-600 px-1.5 py-0.5 text-[10px] text-white hover:bg-green-700"
+                    className="inline-flex min-w-0 items-center gap-1 rounded bg-green-600 px-1.5 py-0.5 text-[11px] text-white hover:bg-green-700"
                     onClick={(event) => event.stopPropagation()}
                     aria-label={`Enviar recordatorio de WhatsApp a ${patientName}`}
                   >
@@ -433,15 +438,15 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
                 )}
               </div>
             )}
-            <div className={`text-xs truncate ${nameStyles}`}>
+            <div className={`text-[13px] truncate ${nameStyles}`}>
               {patientName}
             </div>
-            <div className={`text-[11px] tabular-nums truncate flex items-center gap-1.5 ${metaStyles}`}>
-              <span className="agenda-event__time">{timeRange}</span>
+            <div className={`agenda-event__details text-xs tabular-nums flex flex-wrap items-center gap-x-1.5 gap-y-0.5 ${metaStyles}`}>
+              <span className="agenda-event__time shrink-0">{timeRange}</span>
               {motivo && (
                 <>
                   <span className="opacity-40">·</span>
-                  <span className="truncate">{motivo}</span>
+                  <span className="min-w-0 break-words">{motivo}</span>
                 </>
               )}
             </div>
@@ -451,7 +456,7 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
           <div className="flex flex-wrap gap-1 mt-1">
             <button
               type="button"
-              className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-600 text-white hover:bg-emerald-700"
+              className="text-[11px] px-2 py-0.5 rounded bg-emerald-600 text-white hover:bg-emerald-700"
               onClick={(event) => {
                 event.stopPropagation();
                 void updateAppointmentStatus(eventInfo.event.id, 'ATENDIDA');
@@ -462,7 +467,7 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
             </button>
             <button
               type="button"
-              className="text-[10px] px-1.5 py-0.5 rounded bg-slate-500 text-white hover:bg-slate-600"
+              className="text-[11px] px-2 py-0.5 rounded bg-slate-500 text-white hover:bg-slate-600"
               onClick={(event) => {
                 event.stopPropagation();
                 void updateAppointmentStatus(eventInfo.event.id, 'CANCELADA');
@@ -475,10 +480,10 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
         )}
         {isShort && (estado === 'ATENDIDA' || whatsappUrl) && (
           <div className="flex flex-wrap gap-1 mt-1">
-            {estado === 'ATENDIDA' && (
+            {estado === 'ATENDIDA' && montoPagado == null && (
               <button
                 type="button"
-                className="inline-flex max-w-full self-start items-center gap-1 whitespace-nowrap text-[10px] px-1.5 py-0.5 rounded bg-blue-600 text-white hover:bg-blue-700"
+                className="inline-flex max-w-full self-start items-center gap-1 whitespace-nowrap text-[11px] px-2 py-0.5 rounded bg-blue-600 text-white hover:bg-blue-700"
                 onClick={(event) => {
                   event.stopPropagation();
                   const appointment = appointments.find((item) => item.id === eventInfo.event.id);
@@ -499,7 +504,7 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex self-start items-center gap-1 whitespace-nowrap text-[10px] px-1.5 py-0.5 rounded bg-green-600 text-white hover:bg-green-700"
+                className="inline-flex self-start items-center gap-1 whitespace-nowrap text-[11px] px-2 py-0.5 rounded bg-green-600 text-white hover:bg-green-700"
                 onClick={(event) => event.stopPropagation()}
                 aria-label={`Enviar recordatorio de WhatsApp a ${patientName}`}
               >
