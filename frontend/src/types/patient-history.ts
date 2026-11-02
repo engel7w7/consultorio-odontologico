@@ -5,6 +5,19 @@ export interface TratamientoHistorial {
   fecha: string;
   procedimiento: string;
   duracion_minutos: number;
+  pieza_fdi?: number | null;
+  diente_nombre?: string | null;
+  superficie?: string | null;
+  diagnostico?: string | null;
+  cie10?: string | null;
+  nomenclatura_rapida?: string | null;
+}
+
+export interface CreateTreatmentPayload {
+  nomenclatura_rapida: string;
+  fecha?: string;
+  duracion_minutos?: number;
+  observaciones?: string;
 }
 
 export interface HistorialPaciente {

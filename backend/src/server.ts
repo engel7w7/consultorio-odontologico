@@ -34,7 +34,7 @@ app.get(['/health', '/api/health'], (_req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/patients/:id/medical-history', requireAuth, medicalHistoryRoutes);
-app.use('/api/patients/:id/history', requireAuth, patientHistoryRoutes);
+app.use(['/api/patients/:id/history', '/api/patients/:id/treatments'], requireAuth, patientHistoryRoutes);
 app.use('/api/patients', requireAuth, patientRoutes);
 app.use('/api/appointments', requireAuth, appointmentRoutes);
 
