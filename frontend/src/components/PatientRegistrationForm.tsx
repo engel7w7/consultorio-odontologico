@@ -18,13 +18,11 @@ export const PatientRegistrationForm: React.FC<PatientRegistrationFormProps> = (
 
   // Directorio de contactos
   const [patients, setPatients] = useState<Patient[]>([]);
-  const [loadingDirectory, setLoadingDirectory] = useState(false);
+  const [loadingDirectory, setLoadingDirectory] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [directoryError, setDirectoryError] = useState<string | null>(null);
 
   const fetchPatients = useCallback(async () => {
-    setLoadingDirectory(true);
-    setDirectoryError(null);
     try {
       const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, '');
       const response = await fetch(`${apiUrl}/api/patients`);
@@ -41,7 +39,10 @@ export const PatientRegistrationForm: React.FC<PatientRegistrationFormProps> = (
   }, []);
 
   useEffect(() => {
-    fetchPatients();
+    const timer = setTimeout(() => {
+      void fetchPatients();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [fetchPatients]);
 
   const handleSubmit = async (e: React.FormEvent) => {
