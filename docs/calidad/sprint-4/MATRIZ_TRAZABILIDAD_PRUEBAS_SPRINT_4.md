@@ -29,9 +29,9 @@
 | HU-09 | CP-09-10 | Cambio de paciente no mezcla historiales | E2E | PENDIENTE | Cypress |
 | HU-05 | CP-S4-01 | Cobertura mínima de ramas | Unitario | PASS | 87.78%, objetivo ≥80% |
 | HU-09 | CP-S4-02 | Cobertura mínima de ramas | Unitario | FAIL | 75.55%, objetivo ≥80% |
-| Ambas | CP-S4-02 | Lint sin advertencias críticas | Estático | PARCIAL | Advertencias existentes |
-| Ambas | CP-S4-03 | p95 ≤2 s y errores <1% | Rendimiento | PENDIENTE | JMeter |
-| Ambas | CP-S4-04 | Flujo completado sin ayuda | Aceptación | PENDIENTE | Checklist con odontólogo |
+| Ambas | CP-S4-03 | Lint sin advertencias críticas | Estático | PARCIAL | Advertencias existentes |
+| Ambas | CP-S4-04 | p95 ≤2 s y errores <1% | Rendimiento | PENDIENTE | JMeter |
+| Ambas | CP-S4-05 | Flujo completado sin ayuda | Aceptación | PENDIENTE | Checklist con odontólogo |
 
 ## Resumen
 
