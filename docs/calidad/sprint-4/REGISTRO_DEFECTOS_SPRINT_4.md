@@ -11,7 +11,7 @@
 | DEF-021 | HU-05 | S2 Media | Falta prueba E2E del flujo de agendamiento y del mensaje visual de conflicto. | No existe `frontend/cypress/e2e/hu05-*.cy.ts`. | ABIERTO |
 | DEF-022 | HU-09 | S2 Media | La rama no contiene pruebas específicas del parser ISO 3950, superficies y CIE-10. | No existe suite dedicada para `fdi-notation.utils.ts`. | ABIERTO |
 | DEF-023 | HU-09 | S2 Media | Falta prueba de integración/E2E para registrar tratamiento, asociarlo al paciente y bloquear extracciones inseguras. | No existe `frontend/cypress/e2e/hu09-*.cy.ts` ni integración dedicada. | ABIERTO |
-| DEF-024 | Ambas | S2 Media | La cobertura de ramas no alcanza el umbral SQAP configurado. | `npm run test:coverage`: 75.55%, objetivo 80%. | ABIERTO |
+| DEF-024 | HU-09 | S2 Media | La cobertura de ramas no alcanza el umbral SQAP configurado. | `npm run test:coverage` en HU-09: 75.55%, objetivo 80%; HU-05 obtiene 87.78%. | ABIERTO |
 | DEF-025 | Ambas | S3 Baja | El lint conserva advertencias `react(set-state-in-effect)` en componentes del frontend. | `npm run lint`. | ABIERTO |
 
 ## Acciones correctivas solicitadas

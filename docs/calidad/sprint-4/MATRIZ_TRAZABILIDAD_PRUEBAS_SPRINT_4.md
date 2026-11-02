@@ -27,7 +27,8 @@
 | HU-09 | CP-09-08 | Extracción con exámenes validados | Integración/E2E | PENDIENTE | Registro permitido |
 | HU-09 | CP-09-09 | Visualización del tratamiento en historial | E2E | PENDIENTE | Cypress |
 | HU-09 | CP-09-10 | Cambio de paciente no mezcla historiales | E2E | PENDIENTE | Cypress |
-| Ambas | CP-S4-01 | Cobertura mínima de ramas | Unitario | FAIL | 75.55%, objetivo ≥80% |
+| HU-05 | CP-S4-01 | Cobertura mínima de ramas | Unitario | PASS | 87.78%, objetivo ≥80% |
+| HU-09 | CP-S4-02 | Cobertura mínima de ramas | Unitario | FAIL | 75.55%, objetivo ≥80% |
 | Ambas | CP-S4-02 | Lint sin advertencias críticas | Estático | PARCIAL | Advertencias existentes |
 | Ambas | CP-S4-03 | p95 ≤2 s y errores <1% | Rendimiento | PENDIENTE | JMeter |
 | Ambas | CP-S4-04 | Flujo completado sin ayuda | Aceptación | PENDIENTE | Checklist con odontólogo |
@@ -36,5 +37,6 @@
 
 - Suite general backend: 243 aprobadas y 2 `expected fail`.
 - Casos específicos HU-05/HU-09 con evidencia ejecutada en las ramas: 0.
-- Cobertura de ramas: FAIL, 75.55%.
+- Cobertura de ramas HU-05: PASS, 87.78%.
+- Cobertura de ramas HU-09: FAIL, 75.55%.
 - E2E, rendimiento y aceptación: pendientes.

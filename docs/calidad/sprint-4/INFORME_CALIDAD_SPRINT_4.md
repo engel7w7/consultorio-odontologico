@@ -25,8 +25,8 @@ La revisión se realizó contra las referencias remotas actualizadas con `git fe
 ### Métricas observadas
 
 - Backend: `243 passed`, `2 expected fail`, de 245 pruebas.
-- Cobertura global: 86.22% statements, 75.55% branches, 93.05% functions y 86.95% lines.
-- La cobertura falla el umbral configurado de ramas del 80% (`75.55%`).
+- Cobertura medida sobre `feature/HU-05_agendamiento-dinamico`: 97.10% statements, 87.78% branches, 98.50% functions y 97.23% lines; supera el umbral configurado.
+- Cobertura medida sobre `feature/HU-09_registro-tratamiento`: 86.22% statements, 75.55% branches, 93.05% functions y 86.95% lines; falla el umbral configurado de ramas del 80%.
 - Backend y frontend compilan correctamente.
 - El lint no tiene errores bloqueantes, pero conserva advertencias que impiden declarar conformidad estática.
 
@@ -60,7 +60,7 @@ Sin embargo, no hay pruebas QA específicas que demuestren:
 - bloqueo y permiso de extracción según exámenes;
 - flujo completo desde la ficha del paciente en Cypress.
 
-La cobertura de ramas también queda por debajo del umbral SQAP debido principalmente a la utilidad de nomenclatura.
+La cobertura de ramas de esta rama queda por debajo del umbral SQAP debido principalmente a la utilidad de nomenclatura.
 
 **Veredicto HU-09: NO APROBADA todavía.**
 
