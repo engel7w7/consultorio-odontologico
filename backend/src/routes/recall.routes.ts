@@ -8,5 +8,6 @@ const recallService = new RecallService(prisma);
 const recallController = new RecallController(recallService);
 
 router.get('/profilaxis-vencidas', recallController.getProfilaxisVencidas);
+router.get('/retorno-mensual', recallController.getRetornoMensual);
 
 export default router;

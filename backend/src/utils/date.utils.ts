@@ -17,6 +17,18 @@ export function getTodayDateStringLaPaz(now: Date = new Date()): string {
 }
 
 /**
+ * Obtiene el año y mes en formato YYYY-MM según la zona horaria America/La_Paz.
+ */
+export function getYearMonthLaPaz(date: Date = new Date()): string {
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/La_Paz',
+    year: 'numeric',
+    month: '2-digit',
+  });
+  return formatter.format(date);
+}
+
+/**
  * Calcula el rango de tiempo [inicio, fin) en UTC para un día completo (00:00:00 a 24:00:00)
  * en la zona horaria America/La_Paz (UTC-4).
  * 
