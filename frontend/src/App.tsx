@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { PatientRegistrationForm } from './components/PatientRegistrationForm';
 import { BloodExamCheck } from './components/BloodExamCheck';

@@ -139,3 +139,4 @@ describe('Navegación con Sidebar Vertical (feature/frontend-sidebar-nav)', () =
     });
   });
 });
+

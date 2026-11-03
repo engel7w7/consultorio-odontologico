@@ -6,3 +6,4 @@ export type TabType =
   | 'antecedentes'
   | 'historial'
   | 'retorno';
+
