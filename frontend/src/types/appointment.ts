@@ -25,4 +25,6 @@ export interface CreateAppointmentPayload {
   fecha_inicio: string;
   fecha_fin: string;
   estado?: EstadoCita;
+  tipo_tratamiento?: string;
+  duracion_minutos?: number;
 }

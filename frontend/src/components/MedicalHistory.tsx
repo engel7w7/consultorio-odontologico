@@ -99,7 +99,10 @@ export const MedicalHistory: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    loadPatients();
+    const timer = setTimeout(() => {
+      void loadPatients();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [loadPatients]);
 
   // Cargar historial de auditoría

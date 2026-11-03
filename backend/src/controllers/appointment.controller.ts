@@ -76,6 +76,23 @@ export class AppointmentController {
           .json({ error: 'La hora de inicio debe ser anterior a la hora de fin' });
       }
 
+      if (
+        errCode === 'APPOINTMENT_OVERLAP' ||
+        (error instanceof Error &&
+          (error.message.includes('solapamiento') || error.message.includes('Conflicto de horario')))
+      ) {
+        const errorMsg =
+          error instanceof Error
+            ? error.message
+            : typeof (error as { message?: unknown })?.message === 'string'
+              ? (error as { message: string }).message
+              : 'Conflicto de horario: La cita se solapa con otra cita existente';
+        return res.status(409).json({
+          error: errorMsg,
+          code: 'APPOINTMENT_OVERLAP',
+        });
+      }
+
       console.error('Error al agendar cita:', error);
       return res.status(500).json({ error: 'Error interno al agendar la cita' });
     }

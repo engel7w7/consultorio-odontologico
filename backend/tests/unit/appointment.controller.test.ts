@@ -263,6 +263,30 @@ describe('QA Unit Tests: AppointmentController (HU-04)', () => {
       });
     });
 
+    it('responde 409 cuando existe conflicto de solapamiento de horarios (HU-05)', async () => {
+      mockService.createAppointment = vi.fn().mockRejectedValue({
+        code: 'APPOINTMENT_OVERLAP',
+        message: 'Conflicto de horario: La cita se solapa con una cita existente',
+      });
+
+      mockReq = {
+        body: {
+          patient_id: '123e4567-e89b-12d3-a456-426614174000',
+          motivo: 'Limpieza dental',
+          fecha_inicio: '2026-10-15T10:00:00.000Z',
+          fecha_fin: '2026-10-15T11:00:00.000Z',
+        },
+      };
+
+      await controller.createAppointment(mockReq as Request, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(409);
+      expect(jsonMock).toHaveBeenCalledWith({
+        error: 'Conflicto de horario: La cita se solapa con una cita existente',
+        code: 'APPOINTMENT_OVERLAP',
+      });
+    });
+
     it('responde 500 en error interno del servidor al crear cita', async () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       mockService.createAppointment = vi.fn().mockRejectedValue(new Error('Fallo crítico'));
