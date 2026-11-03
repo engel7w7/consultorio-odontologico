@@ -13,6 +13,7 @@ const mockPrisma = {
   },
   appointment: {
     findMany: vi.fn(),
+    create: vi.fn(),
   },
 } as any;
 
@@ -152,6 +153,87 @@ describe('QA Unit Tests: PatientHistoryService (HU-10)', () => {
         code: 'PATIENT_NOT_FOUND',
       });
       expect(mockPrisma.appointment.findMany).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('registerTreatment (HU-09)', () => {
+    it('registra exitosamente un tratamiento con nomenclatura rápida persistiendo estado ATENDIDA', async () => {
+      mockPrisma.patient.findUnique.mockResolvedValue(paciente);
+      mockPrisma.appointment.create.mockResolvedValue({
+        id: 'c-new',
+        patient_id: PATIENT_ID,
+        motivo: 'Pieza 11 (Incisivo Central Superior Derecho) - Obturación de caries - (CIE-10: K02.9)',
+        fecha_inicio: new Date('2026-10-16T10:00:00.000Z'),
+        fecha_fin: new Date('2026-10-16T10:30:00.000Z'),
+        estado: 'ATENDIDA',
+      });
+
+      const res = await service.registerTreatment(PATIENT_ID, {
+        nomenclatura_rapida: '11 Caries',
+        fecha: '2026-10-16T10:00:00.000Z',
+      });
+
+      expect(res.id).toBe('c-new');
+      expect(res.pieza_fdi).toBe(11);
+      expect(res.cie10).toBe('K02.9');
+      expect(mockPrisma.appointment.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          patient_id: PATIENT_ID,
+          estado: 'ATENDIDA',
+        }),
+      });
+    });
+
+    it('bloquea una extracción (422) si el paciente no tiene exámenes de sangre validados', async () => {
+      mockPrisma.patient.findUnique.mockResolvedValue({
+        ...paciente,
+        examenes_sangre_validados: false,
+      });
+
+      await expect(
+        service.registerTreatment(PATIENT_ID, {
+          nomenclatura_rapida: '48 Exodoncia',
+        })
+      ).rejects.toMatchObject({
+        code: 'EXTRACTION_BLOOD_EXAMS_REQUIRED',
+      });
+      expect(mockPrisma.appointment.create).not.toHaveBeenCalled();
+    });
+
+    it('permite una extracción si el paciente sí tiene exámenes de sangre validados', async () => {
+      mockPrisma.patient.findUnique.mockResolvedValue({
+        ...paciente,
+        examenes_sangre_validados: true,
+      });
+      mockPrisma.appointment.create.mockResolvedValue({
+        id: 'c-ext',
+        patient_id: PATIENT_ID,
+        motivo: 'Pieza 48 (Tercer Molar Inferior Derecho) - Exodoncia dental - (CIE-10: K08.1)',
+        fecha_inicio: new Date('2026-10-16T11:00:00.000Z'),
+        fecha_fin: new Date('2026-10-16T12:00:00.000Z'),
+        estado: 'ATENDIDA',
+      });
+
+      const res = await service.registerTreatment(PATIENT_ID, {
+        nomenclatura_rapida: '48 Exodoncia',
+      });
+
+      expect(res.id).toBe('c-ext');
+      expect(res.pieza_fdi).toBe(48);
+      expect(res.cie10).toBe('K08.1');
+    });
+
+    it('lanza PATIENT_NOT_FOUND si el paciente no existe al registrar tratamiento', async () => {
+      mockPrisma.patient.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.registerTreatment(PATIENT_ID, {
+          nomenclatura_rapida: '11 Caries',
+        })
+      ).rejects.toMatchObject({
+        code: 'PATIENT_NOT_FOUND',
+      });
+      expect(mockPrisma.appointment.create).not.toHaveBeenCalled();
     });
   });
 });

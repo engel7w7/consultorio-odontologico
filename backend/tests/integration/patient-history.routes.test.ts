@@ -192,4 +192,87 @@ describe('QA Integración - HU-10 Historial cronológico de tratamientos', () =>
     expect(res.status).toBe(401);
     expect(findUnique).not.toHaveBeenCalled();
   });
+  describe('HU-09 Registro de Tratamientos con Nomenclatura Rápida', () => {
+    const postTreatment = (id: string, body: Record<string, unknown>) =>
+      request(app)
+        .post(`/api/patients/${id}/treatments`)
+        .set('Authorization', `Bearer ${token}`)
+        .send(body);
+
+    it('CP-09-01: 201 al registrar tratamiento con nomenclatura rápida (ej. 11 Caries)', async () => {
+      vi.spyOn(prisma.patient, 'findUnique').mockResolvedValue(paciente as any);
+      vi.spyOn(prisma.appointment, 'create').mockResolvedValue({
+        id: 'new-appt-1',
+        patient_id: PATIENT_ID,
+        motivo: 'Pieza 11 (Incisivo Central Superior Derecho) - Obturación de caries - (CIE-10: K02.9)',
+        fecha_inicio: new Date('2026-10-18T10:00:00.000Z'),
+        fecha_fin: new Date('2026-10-18T10:30:00.000Z'),
+        estado: 'ATENDIDA',
+      } as any);
+
+      const res = await postTreatment(PATIENT_ID, {
+        nomenclatura_rapida: '11 Caries',
+        fecha: '2026-10-18T10:00:00.000Z',
+      });
+
+      expect(res.status).toBe(201);
+      expect(res.body.id).toBe('new-appt-1');
+      expect(res.body.pieza_fdi).toBe(11);
+      expect(res.body.cie10).toBe('K02.9');
+    });
+
+    it('CP-09-02: 400 si faltan parámetros requeridos o son inválidos', async () => {
+      const res = await postTreatment(PATIENT_ID, {});
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBeDefined();
+    });
+
+    it('CP-09-03: 404 si el paciente no existe', async () => {
+      vi.spyOn(prisma.patient, 'findUnique').mockResolvedValue(null);
+
+      const res = await postTreatment(PATIENT_ID, {
+        nomenclatura_rapida: '11 Caries',
+      });
+
+      expect(res.status).toBe(404);
+      expect(res.body.code).toBe('PATIENT_NOT_FOUND');
+    });
+
+    it('CP-09-04: 422 si se intenta registrar una extracción sin exámenes validados', async () => {
+      vi.spyOn(prisma.patient, 'findUnique').mockResolvedValue({
+        ...paciente,
+        examenes_sangre_validados: false,
+      } as any);
+
+      const res = await postTreatment(PATIENT_ID, {
+        nomenclatura_rapida: '48 Exodoncia',
+      });
+
+      expect(res.status).toBe(422);
+      expect(res.body.code).toBe('EXTRACTION_BLOOD_EXAMS_REQUIRED');
+    });
+
+    it('CP-09-05: 201 si la extracción tiene exámenes de sangre validados', async () => {
+      vi.spyOn(prisma.patient, 'findUnique').mockResolvedValue({
+        ...paciente,
+        examenes_sangre_validados: true,
+      } as any);
+      vi.spyOn(prisma.appointment, 'create').mockResolvedValue({
+        id: 'new-ext-1',
+        patient_id: PATIENT_ID,
+        motivo: 'Pieza 48 (Tercer Molar Inferior Derecho) - Exodoncia dental - (CIE-10: K08.1)',
+        fecha_inicio: new Date('2026-10-18T11:00:00.000Z'),
+        fecha_fin: new Date('2026-10-18T12:00:00.000Z'),
+        estado: 'ATENDIDA',
+      } as any);
+
+      const res = await postTreatment(PATIENT_ID, {
+        nomenclatura_rapida: '48 Exodoncia',
+      });
+
+      expect(res.status).toBe(201);
+      expect(res.body.id).toBe('new-ext-1');
+      expect(res.body.pieza_fdi).toBe(48);
+    });
+  });
 });
