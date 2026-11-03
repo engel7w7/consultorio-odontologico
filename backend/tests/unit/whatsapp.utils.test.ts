@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   normalizeWhatsAppPhone,
   buildWhatsAppReminderUrl,
+  buildWhatsAppRecallInviteUrl,
 } from '../../../frontend/src/utils/whatsapp.utils.js';
 
 describe('QA Unit Tests: whatsapp.utils (HU-13)', () => {
@@ -58,6 +59,23 @@ describe('QA Unit Tests: whatsapp.utils (HU-13)', () => {
       );
 
       expect(url).toBeNull();
+    });
+  });
+
+  describe('buildWhatsAppRecallInviteUrl (HU-15)', () => {
+    it('genera la URL de invitación a profilaxis con el mensaje amigable de retorno', () => {
+      const url = buildWhatsAppRecallInviteUrl('71234567', 'María Laura');
+
+      expect(url).not.toBeNull();
+      expect(url).toContain('https://wa.me/59171234567?text=');
+      const decoded = decodeURIComponent(url!);
+      expect(decoded).toContain('Hola María Laura');
+      expect(decoded).toContain('control preventivo y profilaxis dental');
+    });
+
+    it('retorna null si el teléfono es inválido', () => {
+      expect(buildWhatsAppRecallInviteUrl('invalido', 'María Laura')).toBeNull();
+      expect(buildWhatsAppRecallInviteUrl('', 'María Laura')).toBeNull();
     });
   });
 });
