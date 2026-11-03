@@ -39,3 +39,18 @@ export function buildWhatsAppReminderUrl(
 
   return `https://wa.me/${normalizedPhone}?text=${encodeURIComponent(message)}`;
 }
+
+/**
+ * Genera el enlace de WhatsApp para invitar a un paciente a re-agendar su profilaxis semestral (HU-15).
+ */
+export function buildWhatsAppRecallInviteUrl(
+  phone: string,
+  patientName: string
+): string | null {
+  const normalizedPhone = normalizeWhatsAppPhone(phone);
+  if (!normalizedPhone) return null;
+
+  const message = `Hola ${patientName}, del Centro Odontológico nos comunicamos para recordarle que le corresponde su control preventivo y profilaxis dental. ¿Le gustaría coordinar su cita?`;
+
+  return `https://wa.me/${normalizedPhone}?text=${encodeURIComponent(message)}`;
+}
