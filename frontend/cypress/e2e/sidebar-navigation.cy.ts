@@ -37,14 +37,15 @@ describe('Navegación con Sidebar Vertical (feature/frontend-sidebar-nav)', () =
       cy.viewport(1280, 800);
     });
 
-    it('muestra el sidebar vertical fijo con las 7 secciones clínicas y datos del odontólogo', () => {
+    it('muestra el sidebar vertical fijo con las 6 secciones clínicas y datos del odontólogo', () => {
       cy.get('#sidebar-navigation').should('be.visible');
-      cy.contains('Centro Odontológico').should('be.visible');
-      cy.contains('Gestión Clínica').should('be.visible');
+      cy.get('#sidebar-navigation').within(() => {
+        cy.contains('Centro Odontológico').should('be.visible');
+        cy.contains('Gestión Clínica').should('be.visible');
+      });
 
-      // Las 7 secciones clínicas deben estar presentes
+      // Las 6 secciones clínicas deben estar presentes
       cy.contains('button', 'Directorio de Pacientes').should('be.visible');
-      cy.contains('button', 'Buscador de Pacientes').should('be.visible');
       cy.contains('button', 'Validación de Exámenes').should('be.visible');
       cy.contains('button', 'Agenda Diaria').should('be.visible');
       cy.contains('button', 'Antecedentes Médicos').should('be.visible');
@@ -52,9 +53,11 @@ describe('Navegación con Sidebar Vertical (feature/frontend-sidebar-nav)', () =
       cy.contains('button', 'Retorno de Pacientes').should('be.visible');
 
       // Datos del usuario en la parte inferior
-      cy.contains('Dr. Roberto Mendoza').should('be.visible');
-      cy.contains('Ortodoncia y Cirugía Oral').should('be.visible');
-      cy.contains('button', 'Salir').should('be.visible');
+      cy.get('#sidebar-navigation').within(() => {
+        cy.contains('Dr. Roberto Mendoza').should('be.visible');
+        cy.contains('Ortodoncia y Cirugía Oral').should('be.visible');
+        cy.contains('button', 'Salir').should('be.visible');
+      });
     });
 
     it('resalta la sección activa con aria-current="page" al navegar entre secciones', () => {
@@ -123,7 +126,7 @@ describe('Navegación con Sidebar Vertical (feature/frontend-sidebar-nav)', () =
       cy.get('#sidebar-navigation').should('have.class', 'translate-x-0');
 
       // Seleccionar una sección
-      cy.contains('button', 'Buscador de Pacientes').click();
+      cy.contains('button', 'Agenda Diaria').click();
 
       // El drawer se cierra automáticamente y la vista cambia
       cy.get('#sidebar-navigation').should('have.class', '-translate-x-full');

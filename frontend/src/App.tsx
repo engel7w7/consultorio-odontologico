@@ -4,7 +4,6 @@ import { PatientRegistrationForm } from './components/PatientRegistrationForm';
 import { BloodExamCheck } from './components/BloodExamCheck';
 import { DailyAgenda } from './components/DailyAgenda';
 import { MedicalHistory } from './components/MedicalHistory';
-import { PatientSearch } from './components/PatientSearch';
 import { DoctorLogin } from './components/DoctorLogin';
 import { PatientHistory } from './components/PatientHistory';
 import { PatientRecall } from './components/PatientRecall';
@@ -150,8 +149,6 @@ function App() {
         <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {activeTab === 'registro' ? (
             <PatientRegistrationForm onSelectForValidation={handleSelectForValidation} />
-          ) : activeTab === 'busqueda' ? (
-            <PatientSearch />
           ) : activeTab === 'validacion' ? (
             <BloodExamCheck patientId={selectedPatientForValidation} />
           ) : activeTab === 'agenda' ? (

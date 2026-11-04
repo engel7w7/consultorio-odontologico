@@ -35,20 +35,6 @@ const NAV_ITEMS: NavItem[] = [
     ),
   },
   {
-    id: 'busqueda',
-    label: 'Buscador de Pacientes',
-    icon: (
-      <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-        />
-      </svg>
-    ),
-  },
-  {
     id: 'validacion',
     label: 'Validación de Exámenes',
     icon: (
@@ -186,9 +172,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs"
                 aria-hidden="true"
               >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
+                <img
+                src="/logo.svg"
+                alt="Logo Centro Odontológico"
+                className="w-10 h-10 object-contain rounded-xl shrink-0 justify-center"
+                />
               </div>
 
               {/* Nombre visible solo cuando está expandido o en móvil */}
