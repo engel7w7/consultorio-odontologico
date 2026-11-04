@@ -156,6 +156,16 @@ describe('QA E2E Tests - Sprint 1 (HU-02 y HU-07)', () => {
     cy.contains('span', /^0 años$/).should('be.visible');
   });
 
+  it('HU-02: Filtra el directorio por estado de exámenes', () => {
+    cy.wait('@getPatients');
+    cy.contains('button', 'Luz verde').click();
+    cy.contains('No se encontraron pacientes que coincidan con la búsqueda.').should('be.visible');
+    cy.contains('button', 'Pendientes').click();
+    cy.contains('p', /^jo$/).should('be.visible');
+    cy.contains('button', 'Todos').click();
+    cy.contains('Mostrando 1 de 1 pacientes').should('be.visible');
+  });
+
   it('HU-07: La validación de exámenes otorga luz verde médica', () => {
     cy.contains('button', /Validación de Exámenes|HU-07: Validación de Exámenes/).click();
 

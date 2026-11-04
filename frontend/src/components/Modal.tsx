@@ -4,11 +4,12 @@ interface ModalProps {
   isOpen: boolean;
   title: string;
   description?: string;
+  icon?: ReactNode;
   onClose: () => void;
   children: ReactNode;
 }
 
-export const Modal: FC<ModalProps> = ({ isOpen, title, description, onClose, children }) => {
+export const Modal: FC<ModalProps> = ({ isOpen, title, description, icon, onClose, children }) => {
   const panelRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
   const descriptionId = useId();
@@ -40,7 +41,7 @@ export const Modal: FC<ModalProps> = ({ isOpen, title, description, onClose, chi
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 py-6"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm px-4 py-6"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -51,17 +52,24 @@ export const Modal: FC<ModalProps> = ({ isOpen, title, description, onClose, chi
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
-        className="w-full max-w-md max-h-full overflow-y-auto bg-white p-6 rounded-2xl border border-slate-200 shadow-xl space-y-5"
+        className="w-full max-w-md max-h-full overflow-y-auto bg-white p-6 sm:p-7 rounded-3xl shadow-2xl ring-1 ring-slate-900/5 space-y-5"
       >
-        <div className="border-b border-slate-100 pb-3">
-          <h3 id={titleId} className="text-lg font-bold text-slate-900">
-            {title}
-          </h3>
-          {description && (
-            <p id={descriptionId} className="text-xs text-slate-500 mt-1">
-              {description}
-            </p>
+        <div className="flex items-start gap-3.5">
+          {icon && (
+            <div className="w-11 h-11 rounded-2xl bg-blue-50 text-blue-600 ring-1 ring-blue-100 flex items-center justify-center shrink-0">
+              {icon}
+            </div>
           )}
+          <div className="min-w-0">
+            <h3 id={titleId} className="font-display text-lg font-bold text-slate-900">
+              {title}
+            </h3>
+            {description && (
+              <p id={descriptionId} className="text-sm text-slate-500 mt-0.5 leading-snug">
+                {description}
+              </p>
+            )}
+          </div>
         </div>
         {children}
       </div>
