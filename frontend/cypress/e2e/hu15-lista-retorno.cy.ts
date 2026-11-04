@@ -60,22 +60,22 @@ const retornoDiciembreMock = {
 
 describe('QA E2E - HU-15 Lista mensual de retorno y priorización', () => {
   beforeEach(() => {
+    cy.clock(new Date('2026-11-03T12:00:00.000Z').getTime(), ['Date']);
     cy.intercept('GET', '**/api/auth/me', { statusCode: 200, body: { id: 'u-1', email: 'odontologo@test.com' } });
     cy.intercept('GET', '**/api/recall/profilaxis-vencidas', {
       statusCode: 200,
       body: [],
     }).as('getVencidas');
 
-    // Interceptar llamadas mensuales
-    cy.intercept('GET', '**/api/recall/retorno-mensual?mes=2026-12', {
-      statusCode: 200,
-      body: retornoDiciembreMock,
-    }).as('getRetornoDiciembre');
-
+    // La ruta general se registra primero para que las rutas específicas tengan prioridad.
     cy.intercept('GET', '**/api/recall/retorno-mensual*', {
       statusCode: 200,
       body: retornoNoviembreMock,
     }).as('getRetornoNoviembre');
+    cy.intercept('GET', '**/api/recall/retorno-mensual?mes=2026-12', {
+      statusCode: 200,
+      body: retornoDiciembreMock,
+    }).as('getRetornoDiciembre');
 
     // Iniciar con sesión autenticada
     cy.visit('/', {
@@ -101,7 +101,9 @@ describe('QA E2E - HU-15 Lista mensual de retorno y priorización', () => {
 
   it('CP-15-E2E-01: muestra la lista mensual de retorno, resumen de ingresos y priorización', () => {
     cy.contains('Lista de retorno del mes').should('be.visible');
-    cy.contains('2 pacientes sugeridos · Ingreso estimado Bs 350.00').should('be.visible');
+    cy.contains('2 pacientes sugeridos').should('be.visible');
+    cy.contains('Ingreso estimado:').should('be.visible');
+    cy.contains('Bs 350.00').should('be.visible');
 
     // Carlos Mendoza (prioridad 80, atrasado)
     cy.contains('tr', 'Carlos Mendoza').within(() => {
@@ -109,7 +111,7 @@ describe('QA E2E - HU-15 Lista mensual de retorno y priorización', () => {
       cy.contains('Atrasado').should('be.visible');
       cy.contains('2 meses de atraso').should('be.visible');
       cy.contains('Bs 200.00').should('be.visible');
-      cy.contains('a', 'Contactar por WhatsApp').should('be.visible');
+      cy.contains('a', 'WhatsApp').should('be.visible');
       cy.contains('button', 'Agendar profilaxis').should('be.visible');
     });
 
@@ -123,7 +125,7 @@ describe('QA E2E - HU-15 Lista mensual de retorno y priorización', () => {
 
   it('CP-15-E2E-02: genera el enlace de WhatsApp con el teléfono normalizado y mensaje de invitación', () => {
     cy.contains('tr', 'Carlos Mendoza').within(() => {
-      cy.contains('a', 'Contactar por WhatsApp')
+      cy.contains('a', 'WhatsApp')
         .should('have.attr', 'href')
         .and('include', 'https://wa.me/59171234567?text=')
         .and('include', encodeURIComponent('Carlos Mendoza'))
@@ -136,7 +138,9 @@ describe('QA E2E - HU-15 Lista mensual de retorno y priorización', () => {
     cy.contains('button', 'Mes siguiente').click();
     cy.wait('@getRetornoDiciembre');
 
-    cy.contains('1 pacientes sugeridos · Ingreso estimado Bs 180.00').should('be.visible');
+    cy.contains('1 paciente sugerido').should('be.visible');
+    cy.contains('Ingreso estimado:').should('be.visible');
+    cy.contains('Bs 180.00').should('be.visible');
     cy.contains('Roberto Gómez').should('be.visible');
     cy.contains('Carlos Mendoza').should('not.exist');
   });
