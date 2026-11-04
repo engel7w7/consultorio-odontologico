@@ -10,6 +10,7 @@ describe('QA Unit Tests: AppointmentService (HU-04 y HU-08)', () => {
       create: ReturnType<typeof vi.fn>;
       findUnique: ReturnType<typeof vi.fn>;
       update: ReturnType<typeof vi.fn>;
+      findFirst: ReturnType<typeof vi.fn>;
     };
     patient: {
       findUnique: ReturnType<typeof vi.fn>;
@@ -24,6 +25,7 @@ describe('QA Unit Tests: AppointmentService (HU-04 y HU-08)', () => {
         create: vi.fn(),
         findUnique: vi.fn(),
         update: vi.fn(),
+        findFirst: vi.fn(),
       },
       patient: {
         findUnique: vi.fn(),

@@ -6,9 +6,10 @@ import { MedicalHistory } from './components/MedicalHistory';
 import { PatientSearch } from './components/PatientSearch';
 import { DoctorLogin } from './components/DoctorLogin';
 import { PatientHistory } from './components/PatientHistory';
+import { PatientRecall } from './components/PatientRecall';
 import type { AuthUser } from './types/auth';
 
-type TabType = 'registro' | 'busqueda' | 'validacion' | 'agenda' | 'antecedentes' | 'historial';
+type TabType = 'registro' | 'busqueda' | 'validacion' | 'agenda' | 'antecedentes' | 'historial' | 'retorno';
 
 if (typeof window !== 'undefined' && !(window as any).__fetchAuthIntercepted) {
   const originalFetch = window.fetch;
@@ -249,6 +250,20 @@ function App() {
                 </svg>
                 <span>Historial Clínico</span>
               </button>
+
+              <button
+                onClick={() => setActiveTab('retorno')}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition shrink-0 ${
+                  activeTab === 'retorno'
+                    ? 'bg-white text-blue-600 shadow-xs border border-slate-200'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
+                }`}
+              >
+                <svg className="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span>Retorno de Pacientes</span>
+              </button>
             </nav>
           </div>
         </div>
@@ -266,6 +281,8 @@ function App() {
           <DailyAgenda onSelectPatientForValidation={handleSelectForValidation} />
         ) : activeTab === 'historial' ? (
           <PatientHistory />
+        ) : activeTab === 'retorno' ? (
+          <PatientRecall />
         ) : (
           <MedicalHistory />
         )}

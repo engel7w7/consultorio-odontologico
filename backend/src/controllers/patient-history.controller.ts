@@ -3,6 +3,7 @@ import { PatientHistoryService, PatientHistoryError } from '../services/patient-
 import {
   patientHistoryParamSchema,
   patientHistoryQuerySchema,
+  createTreatmentSchema,
 } from '../schemas/patient-history.schema.js';
 import { z } from 'zod';
 
@@ -31,6 +32,35 @@ export class PatientHistoryController {
       return res
         .status(500)
         .json({ error: 'Error interno al consultar el historial de tratamientos' });
+    }
+  };
+
+  registerTreatment = async (req: Request, res: Response) => {
+    try {
+      const { id } = patientHistoryParamSchema.parse(req.params);
+      const data = createTreatmentSchema.parse(req.body);
+      const treatment = await this.service.registerTreatment(id, data);
+      return res.status(201).json(treatment);
+    } catch (error: unknown) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          error: error.issues[0]?.message || 'Error de validación al registrar tratamiento',
+          issues: error.issues,
+        });
+      }
+
+      if (error instanceof PatientHistoryError) {
+        if (error.code === 'PATIENT_NOT_FOUND') {
+          return res.status(404).json({ error: error.message, code: error.code });
+        }
+        if (error.code === 'EXTRACTION_BLOOD_EXAMS_REQUIRED') {
+          return res.status(422).json({ error: error.message, code: error.code });
+        }
+        return res.status(400).json({ error: error.message, code: error.code });
+      }
+
+      console.error('Error al registrar tratamiento:', error);
+      return res.status(500).json({ error: 'Error interno al registrar el tratamiento' });
     }
   };
 }

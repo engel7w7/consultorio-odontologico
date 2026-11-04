@@ -16,6 +16,7 @@ describe('QA Unit Tests: PatientHistoryController (HU-10)', () => {
     vi.clearAllMocks();
     mockService = {
       getHistory: vi.fn(),
+      registerTreatment: vi.fn(),
     };
     controller = new PatientHistoryController(mockService);
 
@@ -92,6 +93,115 @@ describe('QA Unit Tests: PatientHistoryController (HU-10)', () => {
     expect(statusMock).toHaveBeenCalledWith(500);
     expect(jsonMock).toHaveBeenCalledWith({
       error: 'Error interno al consultar el historial de tratamientos',
+    });
+  });
+  describe('registerTreatment (HU-09)', () => {
+    it('responde 201 y registra el tratamiento con nomenclatura rápida', async () => {
+      const treatmentRes = {
+        id: 'c-1',
+        pieza_fdi: 11,
+        cie10: 'K02.9',
+        procedimiento: 'Obturación de caries',
+      };
+      mockService.registerTreatment.mockResolvedValue(treatmentRes);
+
+      await controller.registerTreatment(
+        {
+          params: { id: patientId },
+          body: { nomenclatura_rapida: '11 Caries' },
+        } as unknown as Request,
+        mockRes as Response
+      );
+
+      expect(statusMock).toHaveBeenCalledWith(201);
+      expect(jsonMock).toHaveBeenCalledWith(treatmentRes);
+    });
+
+    it('responde 400 cuando el ID de paciente no es un UUID válido', async () => {
+      await controller.registerTreatment(
+        {
+          params: { id: 'invalido' },
+          body: { nomenclatura_rapida: '11 Caries' },
+        } as unknown as Request,
+        mockRes as Response
+      );
+
+      expect(statusMock).toHaveBeenCalledWith(400);
+      expect(mockService.registerTreatment).not.toHaveBeenCalled();
+    });
+
+    it('responde 400 cuando falta nomenclatura_rapida', async () => {
+      await controller.registerTreatment(
+        {
+          params: { id: patientId },
+          body: {},
+        } as unknown as Request,
+        mockRes as Response
+      );
+
+      expect(statusMock).toHaveBeenCalledWith(400);
+      expect(mockService.registerTreatment).not.toHaveBeenCalled();
+    });
+
+    it('responde 404 cuando el paciente no existe', async () => {
+      mockService.registerTreatment.mockRejectedValue(
+        new PatientHistoryError('Paciente no encontrado', 'PATIENT_NOT_FOUND')
+      );
+
+      await controller.registerTreatment(
+        {
+          params: { id: patientId },
+          body: { nomenclatura_rapida: '11 Caries' },
+        } as unknown as Request,
+        mockRes as Response
+      );
+
+      expect(statusMock).toHaveBeenCalledWith(404);
+      expect(jsonMock).toHaveBeenCalledWith({
+        error: 'Paciente no encontrado',
+        code: 'PATIENT_NOT_FOUND',
+      });
+    });
+
+    it('responde 422 si se intenta registrar una extracción sin exámenes validados', async () => {
+      mockService.registerTreatment.mockRejectedValue(
+        new PatientHistoryError(
+          'No se pueden registrar extracciones sin exámenes validados',
+          'EXTRACTION_BLOOD_EXAMS_REQUIRED'
+        )
+      );
+
+      await controller.registerTreatment(
+        {
+          params: { id: patientId },
+          body: { nomenclatura_rapida: '48 Exodoncia' },
+        } as unknown as Request,
+        mockRes as Response
+      );
+
+      expect(statusMock).toHaveBeenCalledWith(422);
+      expect(jsonMock).toHaveBeenCalledWith({
+        error: 'No se pueden registrar extracciones sin exámenes validados',
+        code: 'EXTRACTION_BLOOD_EXAMS_REQUIRED',
+      });
+    });
+
+    it('responde 500 ante un error inesperado al registrar tratamiento', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      mockService.registerTreatment.mockRejectedValue(new Error('Fallo crítico'));
+
+      await controller.registerTreatment(
+        {
+          params: { id: patientId },
+          body: { nomenclatura_rapida: '11 Caries' },
+        } as unknown as Request,
+        mockRes as Response
+      );
+
+      expect(statusMock).toHaveBeenCalledWith(500);
+      expect(jsonMock).toHaveBeenCalledWith({
+        error: 'Error interno al registrar el tratamiento',
+      });
     });
   });
 });

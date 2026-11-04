@@ -8,5 +8,6 @@ const patientHistoryService = new PatientHistoryService(prisma);
 const patientHistoryController = new PatientHistoryController(patientHistoryService);
 
 router.get('/', patientHistoryController.getHistory);
+router.post('/', patientHistoryController.registerTreatment);
 
 export default router;
