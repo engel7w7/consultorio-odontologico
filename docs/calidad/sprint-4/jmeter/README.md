@@ -16,3 +16,5 @@ jmeter -n -t .\sprint-4-jmeter.jmx -l .\resultados-sprint-4.jtl -e -o .\reporte-
 ```
 
 El plan está configurado para ejecutar 10 usuarios con una rampa de 10 segundos y 10 iteraciones por usuario.
+
+La evidencia funcional ejecutada validó el login y la consulta de agenda con respuestas HTTP 200. Para reportar rendimiento cuantitativo, genera también el archivo `.jtl` y el reporte HTML; registra p95, porcentaje de error, throughput y total de samples en el informe QA del Sprint 4.
