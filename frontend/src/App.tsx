@@ -85,43 +85,7 @@ function App() {
   };
 
   if (!currentUser) {
-    return (
-      <div className="min-h-screen bg-slate-100 flex flex-col justify-between">
-        <header className="bg-white border-b border-slate-200 py-3.5 px-6 shadow-xs flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold shadow-xs">
-              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-            </div>
-            <div>
-              <h1 className="text-base font-bold text-slate-900 leading-tight">
-                Centro Odontológico Especializado
-              </h1>
-              <p className="text-[11px] text-slate-500 font-medium">
-                Control Clínico y Seguridad del Paciente
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] bg-slate-100 text-slate-600 border border-slate-200 font-medium">
-              <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-              <span>Acceso Protegido</span>
-            </span>
-          </div>
-        </header>
-
-        <main className="flex-1">
-          <DoctorLogin onLoginSuccess={handleLoginSuccess} />
-        </main>
-
-        <footer className="py-4 text-center text-xs text-slate-400 border-t border-slate-200 bg-white">
-          Sistema de Gestión Odontológica &copy; 2026 · Acceso Restringido a Profesionales de la Salud
-        </footer>
-      </div>
-    );
+    return <DoctorLogin onLoginSuccess={handleLoginSuccess} />;
   }
 
   return (
