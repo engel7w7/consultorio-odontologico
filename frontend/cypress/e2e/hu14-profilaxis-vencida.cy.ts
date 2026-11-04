@@ -30,13 +30,25 @@ const profilaxisVencidasMock = [
   },
 ];
 
+const retornoMensualMock = {
+  mes: '2026-11',
+  total: 0,
+  ingreso_estimado_total: 0,
+  pacientes: [],
+};
+
 describe('QA E2E - HU-14 Retorno de Pacientes (Profilaxis Vencida)', () => {
   beforeEach(() => {
+    cy.clock(new Date('2026-11-03T12:00:00.000Z').getTime(), ['Date']);
     cy.intercept('GET', '**/api/auth/me', { statusCode: 200, body: { id: 'u-1', email: 'odontologo@test.com' } });
     cy.intercept('GET', '**/api/recall/profilaxis-vencidas', {
       statusCode: 200,
       body: profilaxisVencidasMock,
     }).as('getVencidas');
+    cy.intercept('GET', '**/api/recall/retorno-mensual*', {
+      statusCode: 200,
+      body: retornoMensualMock,
+    }).as('getRetornoMensual');
     cy.intercept('POST', '**/api/appointments', {
       statusCode: 201,
       body: {
@@ -68,7 +80,7 @@ describe('QA E2E - HU-14 Retorno de Pacientes (Profilaxis Vencida)', () => {
 
     // Navegar a la pestaña Retorno de Pacientes
     cy.contains('button', 'Retorno de Pacientes').click();
-    cy.wait('@getVencidas');
+    cy.wait(['@getVencidas', '@getRetornoMensual']);
   });
 
   it('CP-14-E2E-01: muestra la lista de profilaxis vencidas con días de atraso', () => {
