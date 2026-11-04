@@ -1,28 +1,34 @@
 # Registro de Defectos - Sprint 4
 
-**Proyecto:** Sistema de Gestión para Consultorio Odontológico  
-**QA revisora:** Arancibia Delgado Diego  
-**Fecha:** 2 de noviembre de 2026  
-**Estado general:** 6 hallazgos abiertos
+**Proyecto:** Sistema de Gestión para Consultorio Odontológico
+**QA revisora:** Arancibia Delgado Diego
+**Fecha de actualización:** 4 de noviembre de 2026
+**Historias:** HU-05, HU-09, HU-14 y HU-15
 
 | ID | HU | Severidad | Defecto o incumplimiento | Evidencia | Estado |
 |---|---|---|---|---|---|
-| DEF-020 | HU-05 | S2 Media | La rama no contiene pruebas unitarias o de integración específicas para duración dinámica y solapamiento. | Comparación con `origin/develop`; solo suites generales existentes. | ABIERTO |
-| DEF-021 | HU-05 | S2 Media | Falta prueba E2E del flujo de agendamiento y del mensaje visual de conflicto. | No existe `frontend/cypress/e2e/hu05-*.cy.ts`. | ABIERTO |
-| DEF-022 | HU-09 | S2 Media | La rama no contiene pruebas específicas del parser ISO 3950, superficies y CIE-10. | No existe suite dedicada para `fdi-notation.utils.ts`. | ABIERTO |
-| DEF-023 | HU-09 | S2 Media | Falta prueba de integración/E2E para registrar tratamiento, asociarlo al paciente y bloquear extracciones inseguras. | No existe `frontend/cypress/e2e/hu09-*.cy.ts` ni integración dedicada. | ABIERTO |
-| DEF-024 | HU-09 | S2 Media | La cobertura de ramas no alcanza el umbral SQAP configurado. | `npm run test:coverage` en HU-09: 75.55%, objetivo 80%; HU-05 obtiene 87.78%. | ABIERTO |
-| DEF-025 | Ambas | S3 Baja | El lint conserva advertencias `react(set-state-in-effect)` en componentes del frontend. | `npm run lint`. | ABIERTO |
+| DEF-020 | HU-05 | S2 Media | Inicialmente faltaban pruebas específicas de duración y solapamiento. | Corregido con casos en `appointment.service.test.ts`. | CERRADO |
+| DEF-021 | HU-05 | S2 Media | Falta suite E2E del agendamiento dinámico y mensaje visual de conflicto. | No existe `frontend/cypress/e2e/hu05-*.cy.ts`. | ABIERTO |
+| DEF-022 | HU-09 | S2 Media | Inicialmente faltaban pruebas específicas del parser ISO 3950, superficies y CIE-10. | Cubierto por `fdi-notation.utils.test.ts`. | CERRADO |
+| DEF-023 | HU-09 | S2 Media | Falta suite E2E para registrar tratamiento, asociarlo al paciente y visualizarlo. | No existe `frontend/cypress/e2e/hu09-*.cy.ts`. | ABIERTO |
+| DEF-024 | HU-09 | S2 Media | La cobertura de ramas queda debajo del umbral SQAP. | 75.55%, objetivo mínimo 80%. | ABIERTO |
+| DEF-025 | HU-05/HU-09 | S3 Baja | Persisten advertencias de lint `react(set-state-in-effect)`. | Salida de `npm run lint`. | ABIERTO |
+| DEF-026 | Todas | S2 Media | No se ha adjuntado reporte cuantitativo de rendimiento. | JMeter funcional en HTTP 200; faltan p95 y porcentaje de error. | ABIERTO |
+| DEF-027 | Todas | S3 Baja | Falta evidencia de aceptación con odontólogo. | No se ha adjuntado checklist firmado. | ABIERTO |
 
-## Acciones correctivas solicitadas
+## Evidencia incorporada
 
-1. Agregar pruebas unitarias para cálculo de duración, solapamiento y parser de nomenclatura.
-2. Agregar pruebas Supertest para los endpoints críticos, incluidos 400, 404, 409 y 422.
-3. Agregar suites Cypress `hu05-agendamiento-dinamico.cy.ts` y `hu09-registro-tratamiento.cy.ts`.
-4. Elevar la cobertura de ramas a mínimo 80% y adjuntar el reporte.
-5. Ejecutar JMeter y registrar p95 y porcentaje de error.
-6. Ejecutar aceptación con odontólogo y adjuntar checklist.
+- HU-05: pruebas unitarias de solapamiento en `backend/tests/unit/appointment.service.test.ts`.
+- HU-09: pruebas de parser, servicio, controlador e integración.
+- HU-14: 3/3 pruebas Cypress aprobadas.
+- HU-15: 4/4 pruebas Cypress aprobadas.
+- JMeter: plan en `docs/calidad/sprint-4/jmeter/sprint-4-jmeter.jmx`; login y consulta de agenda respondieron HTTP 200.
 
-## Criterio de cierre
+## Acciones pendientes
 
-Los defectos se cierran únicamente cuando existe evidencia reproducible, las pruebas críticas están en verde y la métrica correspondiente cumple el objetivo del SQAP. Mientras exista una prueba crítica pendiente o cobertura inferior al umbral, no se recomienda aprobar el merge.
+1. Agregar `hu05-*.cy.ts` y `hu09-*.cy.ts`.
+2. Elevar la cobertura de ramas de HU-09 a mínimo 80%.
+3. Generar y adjuntar el reporte JMeter con p95, porcentaje de error, throughput y samples.
+4. Ejecutar y documentar la aceptación con odontólogo.
+
+Mientras permanezca una prueba crítica pendiente, cobertura inferior al umbral o métrica de rendimiento sin evidencia, no se recomienda declarar el Sprint 4 completamente cerrado.
