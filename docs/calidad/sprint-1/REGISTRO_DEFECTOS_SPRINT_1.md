@@ -1,5 +1,9 @@
 # Registro de Defectos y Bloqueos de Calidad - Sprint 1
-**Estándar:** IEEE Std 730 / ISO/IEC 14598 (Sección 8 del SQAP)  
+**Estándar:** IEEE Std 730 / ISO/IEC 14598 (Sección 8 del SQAP)
+
+**Fecha de revisión documental:** 4 de noviembre de 2026
+
+Los defectos históricos del cierre del Sprint 1 permanecen cerrados. Las rutas de evidencia actuales están consolidadas en la matriz de trazabilidad del sprint.
 
 | ID Defecto | Historia | Severidad | Descripción del Problema | Causa Raíz | Acción Correctiva | Responsable | Estado |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |

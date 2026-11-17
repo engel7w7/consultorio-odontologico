@@ -23,6 +23,8 @@ export const createAppointmentSchema = z
     fecha_inicio: z.string().datetime({ message: 'La fecha de inicio debe tener formato ISO 8601' }),
     fecha_fin: z.string().datetime({ message: 'La fecha de fin debe tener formato ISO 8601' }),
     estado: z.enum(['PROGRAMADA', 'ATENDIDA', 'CANCELADA']).optional().default('PROGRAMADA'),
+    duracion_minutos: z.number().int().positive().optional(),
+    tipo_tratamiento: z.string().optional(),
   })
   .refine((data) => new Date(data.fecha_inicio) < new Date(data.fecha_fin), {
     message: 'La hora de inicio debe ser anterior a la hora de fin',

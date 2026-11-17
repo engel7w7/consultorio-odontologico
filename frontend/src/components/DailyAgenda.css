@@ -32,7 +32,7 @@
 
 /* Franjas horarias */
 .daily-agenda .fc .fc-timegrid-slot {
-  height: 42px;
+  height: 56px;
   border-bottom: 1px solid #f1f5f9 !important;
 }
 
@@ -77,7 +77,7 @@
   border: none !important;
   box-shadow: none !important;
   padding: 0 !important;
-  margin: 1px 2px 1px 2rem !important;
+  margin: 2px 6px 2px 2rem !important;
   border-radius: 0.375rem;
   overflow: hidden;
 }
@@ -89,11 +89,13 @@
 
 .daily-agenda .agenda-event {
   min-width: 0;
+  font-size: 0.8125rem;
 }
 
 .daily-agenda .agenda-event__content {
   min-width: 0;
   min-height: 0;
+  overflow: visible;
 }
 
 .daily-agenda .agenda-event__status {
@@ -103,8 +105,17 @@
 
 .daily-agenda .agenda-event__actions {
   max-width: 100%;
+  line-height: 1.15;
 }
 
+.daily-agenda .agenda-event__details {
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.daily-agenda .agenda-event__details > span {
+  min-width: 0;
+}
 .daily-agenda .agenda-event button {
   white-space: nowrap;
 }

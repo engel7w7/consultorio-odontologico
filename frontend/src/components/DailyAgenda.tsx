@@ -8,6 +8,23 @@ import type { Patient } from '../types/patient';
 import { buildWhatsAppReminderUrl } from '../utils/whatsapp.utils';
 import './DailyAgenda.css';
 
+function addMinutesToTime(timeStr: string, minutes: number): string {
+  if (!timeStr || !timeStr.includes(':')) return timeStr;
+  const [hStr, mStr] = timeStr.split(':');
+  const totalMinutes = parseInt(hStr, 10) * 60 + parseInt(mStr, 10) + minutes;
+  const clamped = Math.min(totalMinutes, 23 * 60 + 59);
+  const h = Math.floor(clamped / 60);
+  const m = clamped % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
+const DURATION_PRESETS = [
+  { label: '30 min', desc: 'Consulta / Diagnóstico', minutes: 30 },
+  { label: '1 hora', desc: 'Limpieza / Curación', minutes: 60 },
+  { label: '2 horas', desc: 'Endodoncia / Cirugía', minutes: 120 },
+  { label: 'Personalizado', desc: 'Ajuste manual', minutes: 0 },
+];
+
 interface DailyAgendaProps {
   onSelectPatientForValidation?: (patientId: string) => void;
 }
@@ -20,14 +37,15 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
   const abortControllerRef = useRef<AbortController | null>(null);
   const calendarRef = useRef<FullCalendar | null>(null);
 
-  // Estados del Modal de Agendar Cita (HU-08)
+  // Estados del Modal de Agendar Cita (HU-08 y HU-05)
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loadingPatients, setLoadingPatients] = useState<boolean>(false);
   const [selectedPatientId, setSelectedPatientId] = useState<string>('');
   const [motivo, setMotivo] = useState<string>('');
   const [horaInicio, setHoraInicio] = useState<string>('09:00');
-  const [horaFin, setHoraFin] = useState<string>('09:45');
+  const [horaFin, setHoraFin] = useState<string>('10:00');
+  const [selectedDuration, setSelectedDuration] = useState<number>(60);
   const [fechaCita, setFechaCita] = useState<string>('');
   const [submittingAppt, setSubmittingAppt] = useState<boolean>(false);
   const [modalError, setModalError] = useState<string | null>(null);
@@ -106,8 +124,30 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
     setModalError(null);
     setModalSuccess(null);
     setFechaCita(selectedDate || todayStr);
+    setHoraInicio('09:00');
+    setHoraFin(addMinutesToTime('09:00', 60));
+    setSelectedDuration(60);
     setIsModalOpen(true);
     loadPatients();
+  };
+
+  const handleHoraInicioChange = (newHora: string) => {
+    setHoraInicio(newHora);
+    if (selectedDuration > 0) {
+      setHoraFin(addMinutesToTime(newHora, selectedDuration));
+    }
+  };
+
+  const handleSelectDuration = (minutes: number) => {
+    setSelectedDuration(minutes);
+    if (minutes > 0 && horaInicio) {
+      setHoraFin(addMinutesToTime(horaInicio, minutes));
+    }
+  };
+
+  const handleHoraFinChange = (newHora: string) => {
+    setHoraFin(newHora);
+    setSelectedDuration(0);
   };
 
   const handleCloseModal = () => {
@@ -259,6 +299,22 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
     );
   }, [isExtractionProcedure, selectedPatient]);
 
+  // Detección en tiempo real de solapamiento de horarios con citas activas (HU-05)
+  const overlappingAppointment = useMemo(() => {
+    if (!fechaCita || !horaInicio || !horaFin || horaInicio >= horaFin) return null;
+    const candidateStart = new Date(`${fechaCita}T${horaInicio}:00-04:00`).getTime();
+    const candidateEnd = new Date(`${fechaCita}T${horaFin}:00-04:00`).getTime();
+
+    return (
+      appointments.find((appt) => {
+        if (appt.estado === 'CANCELADA') return false;
+        const apptStart = new Date(appt.fecha_inicio).getTime();
+        const apptEnd = new Date(appt.fecha_fin).getTime();
+        return apptStart < candidateEnd && apptEnd > candidateStart;
+      }) || null
+    );
+  }, [appointments, fechaCita, horaInicio, horaFin]);
+
   const handleCreateAppointment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedPatientId || !motivo.trim() || !fechaCita || !horaInicio || !horaFin) {
@@ -278,6 +334,13 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
       return;
     }
 
+    if (overlappingAppointment) {
+      setModalError(
+        `Conflicto de horario: La cita se solapa con una cita activa de ${overlappingAppointment.patient.nombre}.`
+      );
+      return;
+    }
+
     setSubmittingAppt(true);
     setModalError(null);
     setModalSuccess(null);
@@ -292,6 +355,8 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
         fecha_inicio: startIso,
         fecha_fin: endIso,
         estado: 'PROGRAMADA',
+        duracion_minutos: selectedDuration > 0 ? selectedDuration : undefined,
+        tipo_tratamiento: motivo.trim(),
       };
 
       const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, '');
@@ -375,7 +440,7 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
 
     return (
       <div
-        className={`agenda-event w-full h-full p-1.5 rounded-md overflow-hidden flex flex-col justify-center select-none text-left leading-tight ${containerStyles}`}
+        className={`agenda-event w-full h-full p-2 rounded-md overflow-hidden flex flex-col justify-start select-none text-left leading-tight ${containerStyles}`}
         title={fullTooltip}
         aria-label={fullTooltip}
       >
@@ -384,17 +449,17 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
             <span className={`text-[11px] tabular-nums font-normal ${metaStyles}`}>
               {timeRange}
             </span>
-            <span className={`text-xs truncate ${nameStyles}`}>
+            <span className={`text-[13px] truncate ${nameStyles}`}>
               {patientName}
             </span>
           </div>
         ) : (
-          <div className="agenda-event__content flex flex-col justify-start gap-0.5 overflow-hidden">
+          <div className="agenda-event__content flex flex-col justify-start gap-1">
             {(estado === 'ATENDIDA' || montoPagado != null || whatsappUrl) && (
               <div className="agenda-event__actions flex min-w-0 flex-wrap items-center gap-1">
-                {estado === 'ATENDIDA' && (
+                {estado === 'ATENDIDA' && montoPagado == null && (
                   <span
-                    className="agenda-event__status inline-flex shrink-0 items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-semibold"
+                    className="agenda-event__status inline-flex shrink-0 items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-600 text-white text-[11px] font-semibold"
                     aria-label="Cita atendida"
                   >
                     ✓ Atendida
@@ -403,7 +468,7 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
                 {estado === 'ATENDIDA' && (
                   <button
                     type="button"
-                    className="inline-flex shrink-0 items-center gap-1 rounded bg-blue-600 px-1.5 py-0.5 text-[10px] text-white hover:bg-blue-700"
+                    className="inline-flex min-w-0 max-w-full items-center gap-1 rounded bg-blue-600 px-1.5 py-0.5 text-[11px] text-white hover:bg-blue-700"
                     onClick={(event) => {
                       event.stopPropagation();
                       const appointment = appointments.find((item) => item.id === eventInfo.event.id);
@@ -419,12 +484,17 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
                     {montoPagado == null ? 'Registrar cobro' : `Cobrado Bs ${String(montoPagado)}`}
                   </button>
                 )}
+                {estado === 'ATENDIDA' && montoPagado != null && (
+                  <span className="inline-flex shrink-0 items-center rounded bg-slate-200 px-1.5 py-0.5 text-[11px] font-semibold text-slate-700">
+                    Cobrado Bs {String(montoPagado)}
+                  </span>
+                )}
                 {whatsappUrl && (
                   <a
                     href={whatsappUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex shrink-0 items-center gap-1 rounded bg-green-600 px-1.5 py-0.5 text-[10px] text-white hover:bg-green-700"
+                    className="inline-flex min-w-0 items-center gap-1 rounded bg-green-600 px-1.5 py-0.5 text-[11px] text-white hover:bg-green-700"
                     onClick={(event) => event.stopPropagation()}
                     aria-label={`Enviar recordatorio de WhatsApp a ${patientName}`}
                   >
@@ -433,15 +503,15 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
                 )}
               </div>
             )}
-            <div className={`text-xs truncate ${nameStyles}`}>
+            <div className={`text-[13px] truncate ${nameStyles}`}>
               {patientName}
             </div>
-            <div className={`text-[11px] tabular-nums truncate flex items-center gap-1.5 ${metaStyles}`}>
-              <span className="agenda-event__time">{timeRange}</span>
+            <div className={`agenda-event__details text-xs tabular-nums flex flex-wrap items-center gap-x-1.5 gap-y-0.5 ${metaStyles}`}>
+              <span className="agenda-event__time shrink-0">{timeRange}</span>
               {motivo && (
                 <>
                   <span className="opacity-40">·</span>
-                  <span className="truncate">{motivo}</span>
+                  <span className="min-w-0 break-words">{motivo}</span>
                 </>
               )}
             </div>
@@ -451,7 +521,7 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
           <div className="flex flex-wrap gap-1 mt-1">
             <button
               type="button"
-              className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-600 text-white hover:bg-emerald-700"
+              className="text-[11px] px-2 py-0.5 rounded bg-emerald-600 text-white hover:bg-emerald-700"
               onClick={(event) => {
                 event.stopPropagation();
                 void updateAppointmentStatus(eventInfo.event.id, 'ATENDIDA');
@@ -462,7 +532,7 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
             </button>
             <button
               type="button"
-              className="text-[10px] px-1.5 py-0.5 rounded bg-slate-500 text-white hover:bg-slate-600"
+              className="text-[11px] px-2 py-0.5 rounded bg-slate-500 text-white hover:bg-slate-600"
               onClick={(event) => {
                 event.stopPropagation();
                 void updateAppointmentStatus(eventInfo.event.id, 'CANCELADA');
@@ -475,10 +545,10 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
         )}
         {isShort && (estado === 'ATENDIDA' || whatsappUrl) && (
           <div className="flex flex-wrap gap-1 mt-1">
-            {estado === 'ATENDIDA' && (
+            {estado === 'ATENDIDA' && montoPagado == null && (
               <button
                 type="button"
-                className="inline-flex max-w-full self-start items-center gap-1 whitespace-nowrap text-[10px] px-1.5 py-0.5 rounded bg-blue-600 text-white hover:bg-blue-700"
+                className="inline-flex max-w-full self-start items-center gap-1 whitespace-nowrap text-[11px] px-2 py-0.5 rounded bg-blue-600 text-white hover:bg-blue-700"
                 onClick={(event) => {
                   event.stopPropagation();
                   const appointment = appointments.find((item) => item.id === eventInfo.event.id);
@@ -499,7 +569,7 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex self-start items-center gap-1 whitespace-nowrap text-[10px] px-1.5 py-0.5 rounded bg-green-600 text-white hover:bg-green-700"
+                className="inline-flex self-start items-center gap-1 whitespace-nowrap text-[11px] px-2 py-0.5 rounded bg-green-600 text-white hover:bg-green-700"
                 onClick={(event) => event.stopPropagation()}
                 aria-label={`Enviar recordatorio de WhatsApp a ${patientName}`}
               >
@@ -802,51 +872,98 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
                   className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
 
-                {/* Sugerencias rápidas para el odontólogo */}
+                {/* Sugerencias rápidas para el odontólogo con ajuste automático de duración (HU-05) */}
                 <div className="mt-1.5 flex flex-wrap gap-1.5">
                   <span className="text-[11px] text-slate-400 self-center mr-1">Rápidos:</span>
                   <button
                     type="button"
-                    onClick={() => setMotivo('Extracción de tercer molar')}
+                    onClick={() => {
+                      setMotivo('Extracción de tercer molar');
+                      handleSelectDuration(120);
+                    }}
                     className="text-[11px] bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 px-2 py-0.5 rounded transition"
                   >
-                    Extracción molar
+                    Extracción molar (2h)
                   </button>
                   <button
                     type="button"
-                    onClick={() => setMotivo('Exodoncia simple')}
+                    onClick={() => {
+                      setMotivo('Exodoncia simple');
+                      handleSelectDuration(120);
+                    }}
                     className="text-[11px] bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 px-2 py-0.5 rounded transition"
                   >
-                    Exodoncia
+                    Exodoncia (2h)
                   </button>
                   <button
                     type="button"
-                    onClick={() => setMotivo('Extracción simple de pieza')}
+                    onClick={() => {
+                      setMotivo('Cirugía apical');
+                      handleSelectDuration(120);
+                    }}
                     className="text-[11px] bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 px-2 py-0.5 rounded transition"
                   >
-                    Extracción simple
+                    Cirugía apical (2h)
                   </button>
                   <button
                     type="button"
-                    onClick={() => setMotivo('Cirugía apical')}
-                    className="text-[11px] bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 px-2 py-0.5 rounded transition"
-                  >
-                    Cirugía apical
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setMotivo('Limpieza profiláctica')}
+                    onClick={() => {
+                      setMotivo('Limpieza profiláctica');
+                      handleSelectDuration(60);
+                    }}
                     className="text-[11px] bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 px-2 py-0.5 rounded transition"
                   >
-                    Limpieza
+                    Limpieza (1h)
                   </button>
                   <button
                     type="button"
-                    onClick={() => setMotivo('Restauración con resina')}
+                    onClick={() => {
+                      setMotivo('Restauración con resina');
+                      handleSelectDuration(60);
+                    }}
                     className="text-[11px] bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 px-2 py-0.5 rounded transition"
                   >
-                    Restauración
+                    Restauración (1h)
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMotivo('Consulta y diagnóstico');
+                      handleSelectDuration(30);
+                    }}
+                    className="text-[11px] bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 px-2 py-0.5 rounded transition"
+                  >
+                    Diagnóstico (30m)
+                  </button>
+                </div>
+              </div>
+
+              {/* HU-05: Selector de Duración Dinámica de la Cita */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                  Duración de la Cita (Bloqueo Dinámico)
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {DURATION_PRESETS.map((preset) => {
+                    const isSelected = selectedDuration === preset.minutes;
+                    return (
+                      <button
+                        key={preset.minutes}
+                        type="button"
+                        onClick={() => handleSelectDuration(preset.minutes)}
+                        className={`px-2.5 py-1.5 rounded-lg border text-left text-xs transition flex flex-col justify-between ${
+                          isSelected
+                            ? 'bg-blue-50 border-blue-500 text-blue-900 font-semibold ring-1 ring-blue-500'
+                            : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <span className="font-medium">{preset.label}</span>
+                        <span className="text-[10px] text-slate-500 font-normal truncate">
+                          {preset.desc}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -905,7 +1022,7 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
                   <input
                     type="time"
                     value={horaInicio}
-                    onChange={(e) => setHoraInicio(e.target.value)}
+                    onChange={(e) => handleHoraInicioChange(e.target.value)}
                     required
                     className="w-full px-2.5 py-1.5 text-sm border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
@@ -917,12 +1034,33 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
                   <input
                     type="time"
                     value={horaFin}
-                    onChange={(e) => setHoraFin(e.target.value)}
+                    onChange={(e) => handleHoraFinChange(e.target.value)}
                     required
                     className="w-full px-2.5 py-1.5 text-sm border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
+
+              {/* HU-05: ALERTA DE SOLAPAMIENTO DE HORARIOS */}
+              {overlappingAppointment && (
+                <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-150">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-amber-500" aria-hidden="true"></span>
+                    <h4 className="font-bold text-xs uppercase tracking-wider text-amber-900">
+                      Conflicto de Horario: Solapamiento Detectado
+                    </h4>
+                  </div>
+                  <p className="text-xs text-amber-800 leading-relaxed">
+                    El intervalo seleccionado coincide con la cita de{' '}
+                    <strong className="text-amber-950 font-semibold">{overlappingAppointment.patient.nombre}</strong>{' '}
+                    ({new Date(overlappingAppointment.fecha_inicio).toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit', timeZone: 'America/La_Paz' })} a{' '}
+                    {new Date(overlappingAppointment.fecha_fin).toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit', timeZone: 'America/La_Paz' })}).
+                  </p>
+                  <p className="text-[11px] text-amber-700">
+                    Ajuste la hora de inicio o la duración de la cita para no solapar la atención odontológica.
+                  </p>
+                </div>
+              )}
 
               {/* Mensajes de error del modal */}
               {modalError && (
@@ -951,20 +1089,28 @@ export const DailyAgenda: React.FC<DailyAgendaProps> = ({ onSelectPatientForVali
 
                 <button
                   type="submit"
-                  disabled={submittingAppt || isSafetyBlocked}
+                  disabled={submittingAppt || isSafetyBlocked || Boolean(overlappingAppointment)}
                   className={`px-4 py-2 text-xs font-semibold rounded-lg shadow-sm transition flex items-center gap-1.5 ${
                     isSafetyBlocked
                       ? 'bg-rose-300 text-white cursor-not-allowed border border-rose-400'
-                      : 'bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50'
+                      : overlappingAppointment
+                        ? 'bg-amber-300 text-amber-950 cursor-not-allowed border border-amber-400'
+                        : 'bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50'
                   }`}
-                  title={isSafetyBlocked ? 'Bloqueado por alerta roja de seguridad pre-quirúrgica' : 'Agendar cita'}
+                  title={
+                    isSafetyBlocked
+                      ? 'Bloqueado por alerta roja de seguridad pre-quirúrgica'
+                      : overlappingAppointment
+                        ? 'Bloqueado: La cita se solapa con otra cita agendada'
+                        : 'Agendar cita'
+                  }
                 >
                   {submittingAppt ? (
                     'Agendando…'
                   ) : isSafetyBlocked ? (
-                    <>
-                      <span>Bloqueado por Seguridad Clínica</span>
-                    </>
+                    <span>Bloqueado por Seguridad Clínica</span>
+                  ) : overlappingAppointment ? (
+                    <span>Conflicto: Horario Solapado</span>
                   ) : (
                     'Confirmar y Agendar Cita'
                   )}

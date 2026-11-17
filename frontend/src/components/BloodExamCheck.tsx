@@ -79,27 +79,33 @@ export const BloodExamCheck: React.FC<BloodExamCheckProps> = ({
   }, [initialPatientId]);
 
   useEffect(() => {
-    loadPatients();
+    const timer = setTimeout(() => {
+      void loadPatients();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [loadPatients]);
 
   useEffect(() => {
-    setSelectedPatientId(initialPatientId);
-    if (initialPatientId === 'sample-patient-id') {
-      setSelectedPatient({
-        nombre: 'Juan Pérez',
-        edad: 34,
-        procedimiento: 'Extracción de Tercer Molar (Cirugía)',
-        telefono: '77712345',
-        evidencia_archivo_nombre: 'estudio_hematologico_juan_perez.pdf',
-        evidencia_archivo_url: null,
-        parametros_hematologicos: 'Plaquetas: 240,000/µL | INR: 1.05 | Hemoglobina: 14.8 g/dL',
-        fecha_validacion_examenes: null,
-      });
-      setIsValidated(initialStatus);
-      setUploadedFileName('estudio_hematologico_juan_perez.pdf');
-      setUploadedFileUrl('');
-      setParametrosTexto('Plaquetas: 240,000/µL | INR: 1.05 | Hemoglobina: 14.8 g/dL');
-    }
+    const timer = setTimeout(() => {
+      setSelectedPatientId(initialPatientId);
+      if (initialPatientId === 'sample-patient-id') {
+        setSelectedPatient({
+          nombre: 'Juan Pérez',
+          edad: 34,
+          procedimiento: 'Extracción de Tercer Molar (Cirugía)',
+          telefono: '77712345',
+          evidencia_archivo_nombre: 'estudio_hematologico_juan_perez.pdf',
+          evidencia_archivo_url: null,
+          parametros_hematologicos: 'Plaquetas: 240,000/µL | INR: 1.05 | Hemoglobina: 14.8 g/dL',
+          fecha_validacion_examenes: null,
+        });
+        setIsValidated(initialStatus);
+        setUploadedFileName('estudio_hematologico_juan_perez.pdf');
+        setUploadedFileUrl('');
+        setParametrosTexto('Plaquetas: 240,000/µL | INR: 1.05 | Hemoglobina: 14.8 g/dL');
+      }
+    }, 0);
+    return () => clearTimeout(timer);
   }, [initialPatientId, initialStatus]);
 
   const handleSelectPatient = (id: string) => {

@@ -50,7 +50,7 @@ describe('QA E2E - HU-01 Login seguro', () => {
     cy.contains('button', 'Ingresar al Sistema Clínico').click();
     cy.wait('@login');
 
-    cy.contains('Dra. Prueba').should('be.visible');
+    cy.get('#sidebar-navigation').contains('Dra. Prueba').should('be.visible');
     cy.contains('button', 'Salir').click();
     cy.contains('Portal Odontológico Seguro').should('be.visible');
   });

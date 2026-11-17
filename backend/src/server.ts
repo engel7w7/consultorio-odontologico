@@ -5,6 +5,8 @@ import path from 'path';
 import patientRoutes from './routes/patient.routes.js';
 import appointmentRoutes from './routes/appointment.routes.js';
 import medicalHistoryRoutes from './routes/medical-history.routes.js';
+import patientHistoryRoutes from './routes/patient-history.routes.js';
+import recallRoutes from './routes/recall.routes.js';
 import authRoutes from './routes/auth.routes.js';
 import { requireAuth } from './middlewares/auth.middleware.js';
 
@@ -33,8 +35,10 @@ app.get(['/health', '/api/health'], (_req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/patients/:id/medical-history', requireAuth, medicalHistoryRoutes);
+app.use(['/api/patients/:id/history', '/api/patients/:id/treatments'], requireAuth, patientHistoryRoutes);
 app.use('/api/patients', requireAuth, patientRoutes);
 app.use('/api/appointments', requireAuth, appointmentRoutes);
+app.use('/api/recall', requireAuth, recallRoutes);
 
 app.listen(port, '0.0.0.0', () => {
   console.log(`Server running on port ${port} [Mode: ${process.env.NODE_ENV || 'development'}]`);

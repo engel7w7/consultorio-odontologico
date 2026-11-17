@@ -10,6 +10,7 @@ describe('QA Unit Tests: AppointmentService (HU-04 y HU-08)', () => {
       create: ReturnType<typeof vi.fn>;
       findUnique: ReturnType<typeof vi.fn>;
       update: ReturnType<typeof vi.fn>;
+      findFirst: ReturnType<typeof vi.fn>;
     };
     patient: {
       findUnique: ReturnType<typeof vi.fn>;
@@ -24,6 +25,7 @@ describe('QA Unit Tests: AppointmentService (HU-04 y HU-08)', () => {
         create: vi.fn(),
         findUnique: vi.fn(),
         update: vi.fn(),
+        findFirst: vi.fn(),
       },
       patient: {
         findUnique: vi.fn(),
@@ -212,6 +214,69 @@ describe('QA Unit Tests: AppointmentService (HU-04 y HU-08)', () => {
       });
     });
 
+    describe('solapamiento de citas (HU-05)', () => {
+      it('rechaza una cita que se solapa con una cita activa e identifica al paciente', async () => {
+        mockPrisma.patient.findUnique.mockResolvedValue({
+          id: 'p-2',
+          nombre: 'Paciente nuevo',
+          examenes_sangre_validados: true,
+        });
+        mockPrisma.appointment.findFirst.mockResolvedValue({
+          fecha_inicio: new Date('2026-10-15T15:00:00Z'),
+          fecha_fin: new Date('2026-10-15T16:00:00Z'),
+          patient: { nombre: 'Paciente existente' },
+        });
+
+        await expect(
+          service.createAppointment({
+            patient_id: 'p-2',
+            motivo: 'Consulta',
+            fecha_inicio: '2026-10-15T15:30:00Z',
+            fecha_fin: '2026-10-15T16:30:00Z',
+          })
+        ).rejects.toMatchObject({
+          code: 'APPOINTMENT_OVERLAP',
+          message: expect.stringContaining('Paciente existente'),
+        });
+
+        expect(mockPrisma.appointment.findFirst).toHaveBeenCalledWith({
+          where: {
+            estado: { in: ['PROGRAMADA', 'ATENDIDA'] },
+            fecha_inicio: { lt: new Date('2026-10-15T16:30:00Z') },
+            fecha_fin: { gt: new Date('2026-10-15T15:30:00Z') },
+          },
+          include: { patient: { select: { nombre: true } } },
+        });
+        expect(mockPrisma.appointment.create).not.toHaveBeenCalled();
+      });
+
+      it('permite crear una cita cuando no existe solapamiento activo', async () => {
+        mockPrisma.patient.findUnique.mockResolvedValue({
+          id: 'p-2',
+          nombre: 'Paciente nuevo',
+          examenes_sangre_validados: true,
+        });
+        mockPrisma.appointment.findFirst.mockResolvedValue(null);
+        mockPrisma.appointment.create.mockResolvedValue({
+          id: 'appt-2',
+          patient_id: 'p-2',
+          motivo: 'Consulta',
+          fecha_inicio: new Date('2026-10-15T16:00:00Z'),
+          fecha_fin: new Date('2026-10-15T16:30:00Z'),
+          estado: 'PROGRAMADA',
+        });
+
+        await service.createAppointment({
+          patient_id: 'p-2',
+          motivo: 'Consulta',
+          fecha_inicio: '2026-10-15T16:00:00Z',
+          fecha_fin: '2026-10-15T16:30:00Z',
+        });
+
+        expect(mockPrisma.appointment.create).toHaveBeenCalledOnce();
+      });
+    });
+
     describe('registerPayment (HU-11)', () => {
       it('registra el monto pagado de una cita atendida', async () => {
         mockPrisma.appointment.findUnique.mockResolvedValue({ id: 'appt-1', estado: 'ATENDIDA' });
@@ -245,6 +310,19 @@ describe('QA Unit Tests: AppointmentService (HU-04 y HU-08)', () => {
 
         await expect(service.registerPayment('appt-1', 150)).rejects.toThrow(
           'Solo se pueden registrar cobros en citas atendidas'
+        );
+        expect(mockPrisma.appointment.update).not.toHaveBeenCalled();
+      });
+
+      it('rechaza modificar un cobro ya registrado', async () => {
+        mockPrisma.appointment.findUnique.mockResolvedValue({
+          id: 'appt-1',
+          estado: 'ATENDIDA',
+          monto_pagado: 150,
+        });
+
+        await expect(service.registerPayment('appt-1', 200)).rejects.toThrow(
+          'El cobro de la cita ya fue registrado'
         );
         expect(mockPrisma.appointment.update).not.toHaveBeenCalled();
       });

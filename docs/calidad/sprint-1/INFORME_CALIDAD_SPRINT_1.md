@@ -26,7 +26,11 @@ Durante el Sprint 1 se implementaron las historias clínicas fundacionales del s
 
 ---
 
-## 3. Desglose de Cobertura por Paquete (Vitest Coverage Report)
+## 3. Evidencia y cobertura
+
+Las rutas de pruebas verificadas en el repositorio actual se encuentran en `backend/tests/unit`, `backend/tests/integration` y `frontend/cypress/e2e`. La matriz de trazabilidad detalla la relación entre cada historia y sus archivos reales.
+
+Las métricas siguientes corresponden al reporte de cierre del Sprint 1; no se presentan como una nueva ejecución en esta revisión documental.
 
 - **`src/`:** 100% Statements | 75.0% Branches | 100% Functions | 100% Lines
 - **`src/config/`:** 100% Statements | 100% Branches | 100% Functions | 100% Lines
@@ -35,6 +39,12 @@ Durante el Sprint 1 se implementaron las historias clínicas fundacionales del s
 - **`src/schemas/`:** 100% Statements | 100% Branches | 100% Functions | 100% Lines
 - **`src/services/`:** 97.77% Statements | 83.33% Branches | 100% Functions | 97.72% Lines
 - **`src/utils/`:** 100% Statements | 100% Branches | 100% Functions | 100% Lines
+
+### Pruebas E2E incluidas
+
+- HU-02 y HU-07: `frontend/cypress/e2e/pacientes.cy.ts`
+- HU-03: `frontend/cypress/e2e/antecedentes.cy.ts`
+- HU-04: `frontend/cypress/e2e/agenda.cy.ts`
 
 ---
 
