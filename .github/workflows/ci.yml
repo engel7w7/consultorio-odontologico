@@ -29,8 +29,6 @@ jobs:
 
     env:
       NODE_ENV: test
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
       DATABASE_URL: postgresql://ci_user:ci_password@localhost:5432/consultorio_ci_db?schema=public
       DIRECT_URL: postgresql://ci_user:ci_password@localhost:5432/consultorio_ci_db?schema=public
 
@@ -106,7 +104,10 @@ jobs:
           retention-days: 7
 
       - name: 13. Análisis de Código con SonarQube
-        if: env.SONAR_TOKEN != ''
+        if: ${{ env.SONAR_TOKEN != '' }}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         uses: SonarSource/sonarqube-scan-action@v6
 
   deploy-production:
