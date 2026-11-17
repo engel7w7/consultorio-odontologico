@@ -4,6 +4,13 @@ Sistema web para la gestión integral de historias clínicas, registro de pacien
 
 ---
 
+## 📘 Manual del Odontólogo
+
+Consulta el [Manual de Usuario del Odontólogo](docs/calidad/MANUAL_USUARIO_ODONTOLOGICO.md)
+para conocer el uso paso a paso de los módulos HU-01 a HU-15.
+
+---
+
 ## 🚀 Entornos de Base de Datos (Local y Nube)
 
 El proyecto soporta tanto ejecución local con **Docker** como conexión a **Supabase (PostgreSQL en la nube)** mediante Prisma.

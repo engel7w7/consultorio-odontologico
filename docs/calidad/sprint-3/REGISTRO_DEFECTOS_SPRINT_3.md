@@ -5,14 +5,14 @@
 
 ---
 
-| ID | HU | Severidad | Defecto Detectado | Acción Correctiva Aplicada | Estado Final |
-| :---: | :---: | :---: | :--- | :--- | :---: |
-| **DEF-014** | HU-11 | **S2 (Media)** | Ausencia de pruebas E2E en Cypress para el flujo crítico de registro de cobro del odontólogo. | Creación de `frontend/cypress/e2e/hu11-registro-cobro.cy.ts` con cobertura de visualización, modal y guardado reactivo. | CERRADO (QA) |
-| **DEF-015** | HU-11 | **S3 (Media)** | El servicio `registerPayment` no validaba el estado de la cita, permitiendo registrar cobros en citas canceladas o programadas. | Validación incorporada en `appointment.service.ts` y respuesta HTTP 422 en `appointment.controller.ts`. Pruebas en verde. | CERRADO (Dev) |
-| **DEF-016** | HU-11 | **S4 (Baja)** | Falta de pruebas unitarias para `registerPaymentSchema` y ramas de error 404/500 en `appointment.controller.ts`. | Implementadas suites unitarias en schema y controller, elevando cobertura de líneas al 100%. | CERRADO (QA) |
-| **DEF-017** | HU-13 | **S2 (Media)** | Ausencia de prueba E2E en Cypress para el botón de recordatorio por WhatsApp en la agenda diaria. | Creación de `frontend/cypress/e2e/hu13-recordatorio-whatsapp.cy.ts` con validación de URL `wa.me/591...` y aislamiento de eventos. | CERRADO (QA) |
-| **DEF-018** | HU-13 | **S3 (Media)** | Las utilidades `normalizeWhatsAppPhone` y `buildWhatsAppReminderUrl` contaban con 0% de pruebas unitarias. | Implementada suite en `backend/tests/unit/whatsapp.utils.test.ts` con 7 casos cubriendo formato boliviano y sanitización. | CERRADO (QA) |
-| **DEF-019** | HU-10 | **S4 (Baja)** | Advertencia de linter `react(set-state-in-effect)` en `PatientHistory.tsx` al actualizar estado síncrono en `useEffect`. | El autor encapsuló la llamada dentro de eventos de usuario/carga desacoplada, eliminando la advertencia. | CERRADO (Dev) |
+| ID | HU | Severidad | Defecto Detectado | Acción Correctiva Aplicada | Estado Final | GitHub Issue |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **DEF-014** | HU-11 | **S2 (Media)** | Ausencia de pruebas E2E en Cypress para el flujo crítico de registro de cobro del odontólogo. | Creación de `frontend/cypress/e2e/hu11-registro-cobro.cy.ts` con cobertura de visualización, modal y guardado reactivo. | CERRADO (QA) | [ #78 ](https://github.com/engel7w7/consultorio-odontologico/issues/78) |
+| **DEF-015** | HU-11 | **S3 (Media)** | El servicio `registerPayment` no validaba el estado de la cita, permitiendo registrar cobros en citas canceladas o programadas. | Validación incorporada en `appointment.service.ts` y respuesta HTTP 422 en `appointment.controller.ts`. Pruebas en verde. | CERRADO (Dev) | [ #79 ](https://github.com/engel7w7/consultorio-odontologico/issues/79) |
+| **DEF-016** | HU-11 | **S4 (Baja)** | Falta de pruebas unitarias para `registerPaymentSchema` y ramas de error 404/500 en `appointment.controller.ts`. | Implementadas suites unitarias en schema y controller, elevando cobertura de líneas al 100%. | CERRADO (QA) | [ #80 ](https://github.com/engel7w7/consultorio-odontologico/issues/80) |
+| **DEF-017** | HU-13 | **S2 (Media)** | Ausencia de prueba E2E en Cypress para el botón de recordatorio por WhatsApp en la agenda diaria. | Creación de `frontend/cypress/e2e/hu13-recordatorio-whatsapp.cy.ts` con validación de URL `wa.me/591...` y aislamiento de eventos. | CERRADO (QA) | [ #81 ](https://github.com/engel7w7/consultorio-odontologico/issues/81) |
+| **DEF-018** | HU-13 | **S3 (Media)** | Las utilidades `normalizeWhatsAppPhone` y `buildWhatsAppReminderUrl` contaban con 0% de pruebas unitarias. | Implementada suite en `backend/tests/unit/whatsapp.utils.test.ts` con 7 casos cubriendo formato boliviano y sanitización. | CERRADO (QA) | [ #82 ](https://github.com/engel7w7/consultorio-odontologico/issues/82) |
+| **DEF-019** | HU-10 | **S4 (Baja)** | Advertencia de linter `react(set-state-in-effect)` en `PatientHistory.tsx` al actualizar estado síncrono en `useEffect`. | El autor encapsuló la llamada dentro de eventos de usuario/carga desacoplada, eliminando la advertencia. | CERRADO (Dev) | [ #83 ](https://github.com/engel7w7/consultorio-odontologico/issues/83) |
 
 ---
 

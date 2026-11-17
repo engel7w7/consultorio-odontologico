@@ -13,3 +13,4 @@ cypress/screenshots/
 jmeter.log
 *.jtl
 reporte-jmeter-html/
+.scannerwork/

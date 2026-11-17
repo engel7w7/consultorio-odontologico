@@ -29,6 +29,8 @@ jobs:
 
     env:
       NODE_ENV: test
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
       DATABASE_URL: postgresql://ci_user:ci_password@localhost:5432/consultorio_ci_db?schema=public
       DIRECT_URL: postgresql://ci_user:ci_password@localhost:5432/consultorio_ci_db?schema=public
 
@@ -103,6 +105,10 @@ jobs:
           path: backend/coverage/
           retention-days: 7
 
+      - name: 13. Análisis de Código con SonarQube
+        if: env.SONAR_TOKEN != ''
+        uses: SonarSource/sonarqube-scan-action@v6
+
   deploy-production:
     name: Despliegue Continuo a Producción
     needs: quality-gate
@@ -119,4 +125,3 @@ jobs:
         run: |
           echo "Notificando a Vercel..."
           curl -s -X POST "${{ secrets.VERCEL_DEPLOY_HOOK_URL }}"
-

@@ -4,7 +4,7 @@
 **QA revisora:** Arancibia Delgado Diego  
 **Historias evaluadas:** HU-05 y HU-09  
 **Estándares:** ISO/IEC 25010, ISO/IEC 14598, IEEE 730 y SQAP  
-**Fecha:** 2 de noviembre de 2026  
+**Fecha de Cierre:** 4 de noviembre de 2026
 **Ramas revisadas:** `feature/HU-05_agendamiento-dinamico`, `feature/HU-09_registro-tratamiento`
 
 ## 1. Alcance y método
