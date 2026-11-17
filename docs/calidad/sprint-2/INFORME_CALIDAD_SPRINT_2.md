@@ -2,7 +2,7 @@
 
 **Proyecto:** Sistema de Gestión para Consultorio Odontológico  
 **Normas de Referencia:** ISO/IEC 25010, ISO/IEC 14598, IEEE Std 730  
-**Fecha de Cierre:** _(completar al cerrar el sprint)_  
+**Fecha de Cierre:** 20 de octubre de 2026
 **Alcance:** HU-08, HU-01, HU-06, HU-12 (10 Puntos de Historia)  
 
 ---

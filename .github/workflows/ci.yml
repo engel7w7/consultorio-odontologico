@@ -103,6 +103,13 @@ jobs:
           path: backend/coverage/
           retention-days: 7
 
+      - name: 13. Análisis de Código con SonarQube
+        if: ${{ env.SONAR_TOKEN != '' }}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        uses: SonarSource/sonarqube-scan-action@v6
+
   deploy-production:
     name: Despliegue Continuo a Producción
     needs: quality-gate
@@ -119,4 +126,3 @@ jobs:
         run: |
           echo "Notificando a Vercel..."
           curl -s -X POST "${{ secrets.VERCEL_DEPLOY_HOOK_URL }}"
-
